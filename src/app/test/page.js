@@ -53,8 +53,33 @@ export default function Kmap() {
           </div>
           </div>
           <hr/>
-		
-			<div id="map" style={{ width: '100%', height: 'calc(100vh - 66px)' }}></div>
+          <div className="flex">
+            <div id="map" style={{ width: 'calc(100vw - 400px)', height: 'calc(100vh - 66px)' }}></div>
+            <div className="flex-1">
+                <ul className="">
+                  <li className="p-1 flex gap-2 py-3 border-b-2">
+                    <div className="skeleton w-28 h-28"></div>  
+                    <div className="flex-1">
+                      <h2 className="font-bold text-lg">정치망</h2>
+                      <p className="text-sm text-gray-700">대전 서구 관저동 1688</p>
+                      <p className="text-sm text-gray-700">{`음식점 > 한식 > 해물,생선 > 회`}</p>
+                      <div className="text-right pr-2"><div className="badge badge-md border-red-400 text-red-400 ">987,654❤️</div></div>
+                    </div>
+                  </li>
+                  <li className="p-1 flex gap-2 py-3 border-b-2">
+                    <div className="skeleton w-28 h-28"></div>  
+                    <div className="flex-1">
+                      <h2 className="font-bold text-lg">정치망</h2>
+                      <p className="text-sm text-gray-700">대전 서구 관저동 1688</p>
+                      <p className="text-sm text-gray-700">{`음식점 > 한식 > 해물,생선 > 회`}</p>
+                      <div className="text-right pr-2"><div className="badge badge-md border-red-400 text-red-400 ">987,654❤️</div></div>
+                    </div>
+                  </li>
+                </ul>
+
+            </div>
+          </div>
+			
 				{/* <div className="fixed bg-white w-16 z-20  h-full shadow-lg">
 				<div>
           <div className="text-lg font-bold m-2 text-center leading-5">공유해유</div>
