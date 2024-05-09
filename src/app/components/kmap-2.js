@@ -22,13 +22,6 @@ function placesSearchCB(data, status, pagination, setLocList) {
     }
 }
 
-function closeOverlay(placePosition) {
-    var overlay = new kakao.maps.CustomOverlay({
-        position: placePosition     
-    });
-    overlay.setMap(null);     
-}
-
 function displayPlaces(places, setLocList) {
     var bounds = new window.kakao.maps.LatLngBounds();
     var placeList = [];
@@ -45,39 +38,40 @@ function displayPlaces(places, setLocList) {
         //     `<div style="font-weight: 600; margin-bottom: 3px;">${places[i].place_name}</div>` +
         //     `<div>${places[i].address_name}</div>` +
         //     `</div>`
-        const iwContent = `
-            <div class="wrap">
-                <div class="info">
-                    <div class="title">
-                        ${places[i].place_name}
-                        <div class="close" onclick="closeOverlay(${placePosition})" title="닫기"></div>
-                    </div>
-                    <div class="body">
-                
-                        <div class="desc">
-                            <div class="jibun ellipsis">${places[i].address_name}</div>
-                            <div class="jibun ellipsis">(우) 63309 (지번) 영평동 2181</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-            var overlay = new kakao.maps.CustomOverlay({
-                content: iwContent,
-                position: placePosition     
-            });
-        (function (marker, overlay) {
+        var iwContent = '<div class="wrap">' + 
+            '    <div class="info">' + 
+            '        <div class="title">' + 
+            '            카카오 스페이스닷원' + 
+            '            <div class="close" onclick="closeOverlay()" title="닫기"></div>' + 
+            '        </div>' + 
+            '        <div class="body">' + 
+            '            <div class="img">' +
+            '                <img src="https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/thumnail.png" width="73" height="70">' +
+            '           </div>' + 
+            '            <div class="desc">' + 
+            '                <div class="ellipsis">제주특별자치도 제주시 첨단로 242</div>' + 
+            '                <div class="jibun ellipsis">(우) 63309 (지번) 영평동 2181</div>' + 
+            '                <div><a href="https://www.kakaocorp.com/main" target="_blank" class="link">홈페이지</a></div>' + 
+            '            </div>' + 
+            '        </div>' + 
+            '    </div>' +    
+            '</div>';
+        var infowindow = new window.kakao.maps.InfoWindow({
+            content: iwContent
+        });
+
+        (function (marker, infowindow) {
             // 마커에 mouseover 이벤트를 등록하고 마우스 오버 시 인포윈도우를 표시합니다 
             window.kakao.maps.event.addListener(marker, 'mouseover', function () {
-                overlay.setMap(map);
+                infowindow.open(map, marker);
             });
 
             // 마커에 mouseout 이벤트를 등록하고 마우스 아웃 시 인포윈도우를 닫습니다
             window.kakao.maps.event.addListener(marker, 'mouseout', function () {
-                overlay.setMap(null);
+                infowindow.close();
             });
-        })(marker, overlay);
-        placeList.push({ place: places[i], marker: marker, infowindow:overlay })
+        })(marker, infowindow);
+        placeList.push({ place: places[i], marker: marker, infowindow:infowindow })
     }
     console.log(placeList);
     setLocList(placeList); // 업데이트된 마커 배열을 상태로 설정
@@ -131,11 +125,9 @@ export default function Kmap() {
     const handleClickPlace = (value) => {
         console.log(value)
         for (var i = 0; i < locList.length; i++) {
-            locList[i].infowindow.setMap(null);
+            locList[i].infowindow.close();
         }
-        map.panTo(value.marker.getPosition()); 
-        value.infowindow.setMap(map);
-
+        value.infowindow.open(map, value.marker);
    
     }
 
