@@ -13,6 +13,8 @@
 /.next/
 /out/
 
+#쓰레기
+/trash
 # production
 /build
 

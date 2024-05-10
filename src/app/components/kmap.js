@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Header from "./layout/header";
 import './kmap.css'
-
+import Axios from "@/util/axios";
+import useCustomLogin from '@/app/hooks/useCustomLogin'
 let map;
 
 function placesSearchCB(data, status, pagination, setLocList) {
@@ -87,15 +88,10 @@ function displayPlaces(places, setLocList) {
 export default function Kmap() {
     const searchValue = useRef();
     const [locList, setLocList] = useState([]);
+    const [viewMode, setViewMode] = useState()
+    const { isLogin,getUser } = useCustomLogin();
+    
 
-    // useEffect(() => {
-    //     var container = document.getElementById('map');
-    //     var options = {
-    //         center: new window.kakao.maps.LatLng(33.450701, 126.570667),
-    //         level: 3
-    //     };
-    //     map = new window.kakao.maps.Map(container, options); // 전역 map 변수에 할당
-    // }, [])
     useEffect(() => {
         const kakaoMapScript = document.createElement('script')
         kakaoMapScript.async = false
@@ -127,6 +123,10 @@ export default function Kmap() {
     const handleSubmit = (event) => {
         event.preventDefault(); // 폼의 기본 동작인 전송을 막음
         handleClickSearch(); // 검색 함수 호출
+        (async function () {
+            var res = await Axios.get(`/api/h`)
+            console.log(res)
+          })();
     }
     const handleClickPlace = (value) => {
         console.log(value)
@@ -136,16 +136,21 @@ export default function Kmap() {
         map.panTo(value.marker.getPosition()); 
         value.infowindow.setMap(map);
 
-   
     }
 
     return (
         <>
-            <Header handleSubmit={handleSubmit} searchValue={searchValue}/>
-   
+            <Header handleSubmit={handleSubmit} searchValue={searchValue} setViewMode={setViewMode}/>
+            <hr/>
             <div className="flex ">
                 <div id="map" style={{ width: 'calc(100vw - 400px)', height: 'calc(100vh - 66px)' }}></div>
                 <div className="flex-1 overflow-auto" style={{ height: "calc(100vh - 66px)" }}>
+                    {/* 로그인되어있을 경우 유저 장소 표시 */}
+                    {isLogin && (
+                        <>
+                        {viewMode}
+                        </>
+                    )}
                     <ul className="">
                     {locList.map((value, index) => {
                         return (
@@ -155,7 +160,7 @@ export default function Kmap() {
                                 <h2 className="font-bold text-lg">{value.place.place_name}</h2>
                                 <p className="text-sm text-gray-700">{value.place.address_name}</p>
                                 <p className="text-sm text-gray-700 overflow-hidden whitespace-nowrap text-ellipsis w-56">{value.place.category_name}</p>
-                                <div className="text-right pr-2"><div className="badge badge-md border-red-400 text-red-400 ">987,654❤️</div></div>
+                                <div className="text-right pr-2"><div className="badge badge-md border-red-400 text-red-400 " onClick={() => {console.log(3)}}>987,654❤️</div></div>
                             </div>
                         </li>
                         );   

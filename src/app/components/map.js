@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Header from "./layout/header";
 import './kmap.css'
-
+import Axios from "@/util/axios";
+import useCustomLogin from '@/app/hooks/useCustomLogin'
 let map;
 
 function placesSearchCB(data, status, pagination, setLocList) {
@@ -22,6 +23,13 @@ function placesSearchCB(data, status, pagination, setLocList) {
     }
 }
 
+function closeOverlay(placePosition) {
+    var overlay = new kakao.maps.CustomOverlay({
+        position: placePosition     
+    });
+    overlay.setMap(null);     
+}
+
 function displayPlaces(places, setLocList) {
     var bounds = new window.kakao.maps.LatLngBounds();
     var placeList = [];
@@ -38,58 +46,52 @@ function displayPlaces(places, setLocList) {
         //     `<div style="font-weight: 600; margin-bottom: 3px;">${places[i].place_name}</div>` +
         //     `<div>${places[i].address_name}</div>` +
         //     `</div>`
-        var iwContent = '<div class="wrap">' + 
-            '    <div class="info">' + 
-            '        <div class="title">' + 
-            '            카카오 스페이스닷원' + 
-            '            <div class="close" onclick="closeOverlay()" title="닫기"></div>' + 
-            '        </div>' + 
-            '        <div class="body">' + 
-            '            <div class="img">' +
-            '                <img src="https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/thumnail.png" width="73" height="70">' +
-            '           </div>' + 
-            '            <div class="desc">' + 
-            '                <div class="ellipsis">제주특별자치도 제주시 첨단로 242</div>' + 
-            '                <div class="jibun ellipsis">(우) 63309 (지번) 영평동 2181</div>' + 
-            '                <div><a href="https://www.kakaocorp.com/main" target="_blank" class="link">홈페이지</a></div>' + 
-            '            </div>' + 
-            '        </div>' + 
-            '    </div>' +    
-            '</div>';
-        var infowindow = new window.kakao.maps.InfoWindow({
-            content: iwContent
-        });
-
-        (function (marker, infowindow) {
+        const iwContent = `
+            <div class="wrap">
+                <div class="info">
+                    <div class="title">
+                        ${places[i].place_name}
+                        <div class="close" onclick="closeOverlay(${placePosition})" title="닫기"></div>
+                    </div>
+                    <div class="body">
+                
+                        <div class="desc">
+                            <div class="jibun ellipsis">${places[i].address_name}</div>
+                            <div class="jibun ellipsis">(우) 63309 (지번) 영평동 2181</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+            var overlay = new kakao.maps.CustomOverlay({
+                content: iwContent,
+                position: placePosition     
+            });
+        (function (marker, overlay) {
             // 마커에 mouseover 이벤트를 등록하고 마우스 오버 시 인포윈도우를 표시합니다 
             window.kakao.maps.event.addListener(marker, 'mouseover', function () {
-                infowindow.open(map, marker);
+                overlay.setMap(map);
             });
 
             // 마커에 mouseout 이벤트를 등록하고 마우스 아웃 시 인포윈도우를 닫습니다
             window.kakao.maps.event.addListener(marker, 'mouseout', function () {
-                infowindow.close();
+                overlay.setMap(null);
             });
-        })(marker, infowindow);
-        placeList.push({ place: places[i], marker: marker, infowindow:infowindow })
+        })(marker, overlay);
+        placeList.push({ place: places[i], marker: marker, infowindow:overlay })
     }
     console.log(placeList);
     setLocList(placeList); // 업데이트된 마커 배열을 상태로 설정
     map.setBounds(bounds);
 }
 
-export default function Kmap() {
+export default function Map({ children }) {
     const searchValue = useRef();
     const [locList, setLocList] = useState([]);
+    const [viewMode, setViewMode] = useState()
+    const { isLogin,getUser } = useCustomLogin();
+    
 
-    // useEffect(() => {
-    //     var container = document.getElementById('map');
-    //     var options = {
-    //         center: new window.kakao.maps.LatLng(33.450701, 126.570667),
-    //         level: 3
-    //     };
-    //     map = new window.kakao.maps.Map(container, options); // 전역 map 변수에 할당
-    // }, [])
     useEffect(() => {
         const kakaoMapScript = document.createElement('script')
         kakaoMapScript.async = false
@@ -121,38 +123,29 @@ export default function Kmap() {
     const handleSubmit = (event) => {
         event.preventDefault(); // 폼의 기본 동작인 전송을 막음
         handleClickSearch(); // 검색 함수 호출
+        (async function () {
+            var res = await Axios.get(`/api/h`)
+            console.log(res)
+          })();
     }
     const handleClickPlace = (value) => {
         console.log(value)
         for (var i = 0; i < locList.length; i++) {
-            locList[i].infowindow.close();
+            locList[i].infowindow.setMap(null);
         }
-        value.infowindow.open(map, value.marker);
-   
+        map.panTo(value.marker.getPosition()); 
+        value.infowindow.setMap(map);
+
     }
 
     return (
         <>
-            <Header handleSubmit={handleSubmit} searchValue={searchValue}/>
-   
+            <Header handleSubmit={handleSubmit} searchValue={searchValue} setViewMode={setViewMode}/>
+            <hr/>
             <div className="flex ">
                 <div id="map" style={{ width: 'calc(100vw - 400px)', height: 'calc(100vh - 66px)' }}></div>
                 <div className="flex-1 overflow-auto" style={{ height: "calc(100vh - 66px)" }}>
-                    <ul className="">
-                    {locList.map((value, index) => {
-                        return (
-                            <li key={index} className="p-2 flex gap-3 py-3 border-b-2"  onClick={() => {handleClickPlace(value)}}>
-                            <div className="skeleton w-24 h-24"></div>
-                            <div className="flex-1">
-                                <h2 className="font-bold text-lg">{value.place.place_name}</h2>
-                                <p className="text-sm text-gray-700">{value.place.address_name}</p>
-                                <p className="text-sm text-gray-700 overflow-hidden whitespace-nowrap text-ellipsis w-56">{value.place.category_name}</p>
-                                <div className="text-right pr-2"><div className="badge badge-md border-red-400 text-red-400 ">987,654❤️</div></div>
-                            </div>
-                        </li>
-                        );   
-                    })}
-                    </ul>
+                    {children}
 
                 </div>
             </div>
