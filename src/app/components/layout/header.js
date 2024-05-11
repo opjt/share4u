@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export default function Header({ handleSubmit, searchValue, setViewMode }) {
     const { isLogin, getUser,doLogin } = useCustomLogin();
-    console.log(isLogin)
+    // console.log(isLogin)
     return (
         <div className="navbar bg-base-100">
             <div className="flex-1">

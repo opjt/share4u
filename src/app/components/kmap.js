@@ -78,6 +78,8 @@ function displayPlaces(places, setLocList) {
                 overlay.setMap(null);
             });
         })(marker, overlay);
+
+
         placeList.push({ place: places[i], marker: marker, infowindow:overlay })
     }
     console.log(placeList);
@@ -88,11 +90,16 @@ function displayPlaces(places, setLocList) {
 export default function Kmap() {
     const searchValue = useRef();
     const [locList, setLocList] = useState([]);
+    const [userLocList, setUserLocList] = useState([])
     const [viewMode, setViewMode] = useState()
     const { isLogin,getUser } = useCustomLogin();
     
 
     useEffect(() => {
+        (async function () {
+            const res = await Axios.get(`/api/v1/loc`)
+            setUserLocList(res.data)
+        })();
         const kakaoMapScript = document.createElement('script')
         kakaoMapScript.async = false
         kakaoMapScript.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_APP_JS_KEY}&autoload=false&libraries=services`
@@ -111,6 +118,9 @@ export default function Kmap() {
 
         kakaoMapScript.addEventListener('load', onLoadKakaoAPI)
     }, [])
+    useEffect(() => {
+  
+    }, [locList])
     const handleClickSearch = () => {
         console.log(searchValue.current.value);
         //마커 초기화
@@ -137,6 +147,14 @@ export default function Kmap() {
         value.infowindow.setMap(map);
 
     }
+    const handleClickHeart = async (place) => {
+        // console.log(place)
+        const res = await Axios.post(`/api/v1/loc/${place.id}`, place)
+        setUserLocList(res.data)
+        console.log(res)
+
+    }
+
 
     return (
         <>
@@ -160,7 +178,7 @@ export default function Kmap() {
                                 <h2 className="font-bold text-lg">{value.place.place_name}</h2>
                                 <p className="text-sm text-gray-700">{value.place.address_name}</p>
                                 <p className="text-sm text-gray-700 overflow-hidden whitespace-nowrap text-ellipsis w-56">{value.place.category_name}</p>
-                                <div className="text-right pr-2"><div className="badge badge-md border-red-400 text-red-400 " onClick={() => {console.log(3)}}>987,654❤️</div></div>
+                                <div className="text-right pr-2"><div className={`badge badge-md ${userLocList.includes(value.place.id) ? 'bg-red-400 text-white' : 'border-red-400 text-red-400'}`} onClick={() => {handleClickHeart(value.place)}}>저장❤️</div></div>
                             </div>
                         </li>
                         );   

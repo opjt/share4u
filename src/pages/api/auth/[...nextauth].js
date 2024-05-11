@@ -18,7 +18,8 @@ export default NextAuth({
       let result = await db.collection('user').findOne({email:user.email});
       if(result == null) {
           var userValue = {
-            email: user.email
+            email: user.email,
+            loclist: []
         };
         var insert = await db.collection('user').insertOne(userValue);
       }

@@ -21,6 +21,7 @@ Axios.interceptors.request.use(async (config) => {
             }
         )
     }
+    config.headers.email = session.user.email
   return config;
 });
 
