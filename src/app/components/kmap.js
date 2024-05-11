@@ -23,12 +23,7 @@ function placesSearchCB(data, status, pagination, setLocList) {
     }
 }
 
-function closeOverlay(placePosition) {
-    var overlay = new kakao.maps.CustomOverlay({
-        position: placePosition     
-    });
-    overlay.setMap(null);     
-}
+
 
 function displayPlaces(places, setLocList) {
     var bounds = new window.kakao.maps.LatLngBounds();
@@ -51,7 +46,7 @@ function displayPlaces(places, setLocList) {
                 <div class="info">
                     <div class="title">
                         ${places[i].place_name}
-                        <div class="close" onclick="closeOverlay(${placePosition})" title="닫기"></div>
+                        <div class="close" onclick="closeOverlay()" title="닫기"></div>
                     </div>
                     <div class="body">
                 
@@ -85,6 +80,9 @@ function displayPlaces(places, setLocList) {
     console.log(placeList);
     setLocList(placeList); // 업데이트된 마커 배열을 상태로 설정
     map.setBounds(bounds);
+}
+function closeOverlay() {
+    overlay.setMap(null);     
 }
 
 export default function Kmap() {
@@ -138,6 +136,12 @@ export default function Kmap() {
             console.log(res)
           })();
     }
+    const  closeOverlay = (placePosition) => {
+        var overlay = new kakao.maps.CustomOverlay({
+            position: placePosition     
+        });
+        overlay.setMap(null);     
+    }
     const handleClickPlace = (value) => {
         console.log(value)
         for (var i = 0; i < locList.length; i++) {
@@ -149,9 +153,15 @@ export default function Kmap() {
     }
     const handleClickHeart = async (place) => {
         // console.log(place)
-        const res = await Axios.post(`/api/v1/loc/${place.id}`, place)
-        setUserLocList(res.data)
-        console.log(res)
+        try {
+            const res = await Axios.post(`/api/v1/loc/${place.id}`, place)
+            setUserLocList(res.data)
+            console.log(res)
+        } catch ({response}) {
+            console.log(response)
+            alert("로그인 후 이용 가능합니다")
+        }
+        
 
     }
 
@@ -172,10 +182,10 @@ export default function Kmap() {
                     <ul className="">
                     {locList.map((value, index) => {
                         return (
-                            <li key={index} className="p-2 flex gap-3 py-3 border-b-2"  onClick={() => {handleClickPlace(value)}}>
+                            <li key={index} className="p-2 flex gap-3 py-3 border-b-2" >
                             <div className="skeleton w-24 h-24"></div>
                             <div className="flex-1">
-                                <h2 className="font-bold text-lg">{value.place.place_name}</h2>
+                                <h2 className="font-bold text-lg cursor-pointer"  onClick={() => {handleClickPlace(value)}}>{value.place.place_name}</h2>
                                 <p className="text-sm text-gray-700">{value.place.address_name}</p>
                                 <p className="text-sm text-gray-700 overflow-hidden whitespace-nowrap text-ellipsis w-56">{value.place.category_name}</p>
                                 <div className="text-right pr-2"><div className={`badge badge-md ${userLocList.includes(value.place.id) ? 'bg-red-400 text-white' : 'border-red-400 text-red-400'}`} onClick={() => {handleClickHeart(value.place)}}>저장❤️</div></div>

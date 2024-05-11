@@ -1,11 +1,10 @@
 'use client'
 
-import {Map, MapMarker, CustomOverlayMap,CustomOverlay  } from "react-kakao-maps-sdk"
-import useKakaoLoader from "@/app/hooks/useKakaoLoader"
 import { useEffect, useRef, useState } from "react";
 import Header from "@/app/components/layout/header";
 import '@/app/components/kmap.css'
 import Axios from "@/util/axios";
+import useKakaoMap from "../hooks/useKakaoMap";
 import useCustomLogin from '@/app/hooks/useCustomLogin'
 
 
@@ -18,18 +17,11 @@ export default function Kmap() {
     const [viewMode, setViewMode] = useState()
     const { isLogin,getUser } = useCustomLogin();
     const [isVisible, setVisible] = useState()
-    const [map, setMap] = useState()
 
-    // useEffect(() => {
-    //     (async function () {
-    //         const res = await Axios.get(`/api/v1/loc`)
-    //         setUserLocList(res.data)
-    //     })();
-       
-    // }, [])
-    useEffect(() => {
-  
-    }, [locList])
+    const [container, setContainer ] = useState(null)
+    const {map, putMarker} = useKakaoMap(container)
+
+
     const handleClickSearch = () => {
         console.log(searchValue.current.value);
         //마커 초기화
@@ -53,6 +45,8 @@ export default function Kmap() {
                 },
                 content: data[i].place_name,visible:false
               }
+              var position = new kakao.maps.LatLng(data[i].y, data[i].x)
+              putMarker(position)
               // @ts-ignore
               bounds.extend(new kakao.maps.LatLng(data[i].y, data[i].x))
               markers.push({place: data[i], marker: marker})
@@ -114,31 +108,7 @@ export default function Kmap() {
       <Header handleSubmit={handleSubmit} searchValue={searchValue} setViewMode={setViewMode}/>
       <hr/>
       <div className="flex ">
-        <Map // 지도를 표시할 Container
-          center={{
-            // 지도의 중심좌표
-            lat: 33.450701,
-            lng: 126.570667,
-          }}
-          style={{ width: 'calc(100vw - 400px)', height: 'calc(100vh - 66px)' }}
-          level={3} // 지도의 확대 레벨
-          onCreate={setMap}
-        >
-          {locList.map((marker, index) => (
-            <>
-            <MapMarker
-              key={`marker-${index}`}
-              position={marker.marker.position} onClick={() => handleClickMarker(index)}
-            >
-             
-              </MapMarker>
-                 <CustomOverlayMap position={marker.marker.position}>
-                 asd
-               </CustomOverlayMap>
-               </>
-            ))}
-            
-        </Map>
+      <div style={{ width: 'calc(100vw - 400px)', height: 'calc(100vh - 66px)' }} ref={setContainer}></div>
 
         <div className="flex-1 overflow-auto" style={{ height: "calc(100vh - 66px)" }}>
           {/* 로그인되어있을 경우 유저 장소 표시 */}
@@ -166,38 +136,9 @@ export default function Kmap() {
         </div>
       </div>
 
-      {/* <div className="map_wrap">
-      <div id="map" style={{ width: '100%', height: '100vh' }}></div>
-
-      <div id="menu_wrap" className="bg_white">
-          <div className="option">
-              <div>
-                  <form onSubmit={handleSubmit}>
-                      키워드 : <input type="text" ref={searchValue} id="keyword" size="15" />
-                      <button type="submit">검색하기</button>
-                  </form>
-              </div>
-          </div>
-          <hr /> 
-
-<h1 className="text-3xl font-bold underline">
-  Hello world!
-  </h1>
-          <ul id="placesList">
-  {locList.map((value, index) => {
-  return (
-    <li key={index} onClick={() => {handleClickPlace(value)}}>
-      <div>{value.place.place_name}</div>
-      <div>{value.place.address_name}</div>
-      <hr />
-    </li>
-    
-  );
-  })}
-</ul>
-          <div id="pagination"></div>
-      </div>
-  </div> */}
+ 
     </>
   );
 }
+
+
