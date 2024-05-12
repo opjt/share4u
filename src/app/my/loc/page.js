@@ -4,122 +4,53 @@ import { useEffect, useRef, useState } from "react";
 import Header from "@/app/components/layout/header";
 import '@/app/components/kmap.css'
 import Axios from "@/util/axios";
+import useKakaoMap from "@/app/hooks/useKakaoMap";
 import useCustomLogin from '@/app/hooks/useCustomLogin'
-let map;
-
-function placesSearchCB(data, status, pagination, setLocList) {
-    if (status === window.kakao.maps.services.Status.OK) {
-        console.log(data);
 
 
-        displayPlaces(data, setLocList);
-        console.log(pagination);
-    } else if (status === window.kakao.maps.services.Status.ZERO_RESULT) {
-        alert('검색 결과가 존재하지 않습니다.');
-        return;
-    } else if (status === window.kakao.maps.services.Status.ERROR) {
-        alert('검색 결과 중 오류가 발생했습니다.');
-        return;
-    }
-}
+export default function Kmap() {
+  
 
-function closeOverlay(placePosition) {
-    var overlay = new kakao.maps.CustomOverlay({
-        position: placePosition     
-    });
-    overlay.setMap(null);     
-}
-
-function displayPlaces(places, setLocList) {
-    var bounds = new window.kakao.maps.LatLngBounds();
-    console.log(places)
-    var placeList = [];
-    for (var i = 0; i < places.length; i++) {
-        var placePosition = new window.kakao.maps.LatLng(places[i].y, places[i].x);
-        bounds.extend(placePosition);
-
-        var marker = new window.kakao.maps.Marker({
-            map: map,
-            position: placePosition // 마커의 위치
-        });
-        //마커이름과 주소가 마커위에 생성되게 합니다.
-        // var iwContent = `<div style="padding:8px;text-overflow: ellipsis;overflow: hidden;white-space: nowrap;">` +
-        //     `<div style="font-weight: 600; margin-bottom: 3px;">${places[i].place_name}</div>` +
-        //     `<div>${places[i].address_name}</div>` +
-        //     `</div>`
-        const iwContent = `
-            <div class="wrap">
-                <div class="info">
-                    <div class="title">
-                        ${places[i].place_name}
-                        <div class="close" onclick="closeOverlay(${placePosition})" title="닫기"></div>
-                    </div>
-                    <div class="body">
-                
-                        <div class="desc">
-                            <div class="jibun ellipsis">${places[i].address_name}</div>
-                            <div class="jibun ellipsis">(우) 63309 (지번) 영평동 2181</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-            var overlay = new kakao.maps.CustomOverlay({
-                content: iwContent,
-                position: placePosition     
-            });
-        (function (marker, overlay) {
-            // 마커에 mouseover 이벤트를 등록하고 마우스 오버 시 인포윈도우를 표시합니다 
-            window.kakao.maps.event.addListener(marker, 'mouseover', function () {
-                overlay.setMap(map);
-            });
-
-            // 마커에 mouseout 이벤트를 등록하고 마우스 아웃 시 인포윈도우를 닫습니다
-            window.kakao.maps.event.addListener(marker, 'mouseout', function () {
-                overlay.setMap(null);
-            });
-        })(marker, overlay);
-        placeList.push({ place: places[i], marker: marker, infowindow:overlay })
-    }
-    console.log(placeList);
-    setLocList(placeList); // 업데이트된 마커 배열을 상태로 설정
-    map.setBounds(bounds);
-}
-
-export default function Myloc() {
-    const searchValue = useRef();
+  const searchValue = useRef();
     const [locList, setLocList] = useState([]);
+    const [userLocList, setUserLocList] = useState([])
     const [viewMode, setViewMode] = useState()
     const { isLogin,getUser } = useCustomLogin();
-    
+
+    const [container, setContainer ] = useState(null)
+    const {map, putMarker, kakao} = useKakaoMap(container)
 
     useEffect(() => {
-        const kakaoMapScript = document.createElement('script')
-        kakaoMapScript.async = false
-        kakaoMapScript.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_APP_JS_KEY}&autoload=false&libraries=services`
-        document.head.appendChild(kakaoMapScript)
+        (async function () {
+            const res = await Axios.get(`/api/v1/loc`)
+            
+            setUserLocList(res.data.list)
+        })();
+    },[])
+    useEffect(() => {
+        (async function () {
+            const res = await Axios.get(`/api/v1/loc`)
+            setMarkers(res.data.loc)
+            // setLocList(res.data.loc)
+        })();
+    },[userLocList])
+    const setMarkers = (places) => {
+   
+        if(!kakao) return
 
-        const onLoadKakaoAPI = () => {
-            window.kakao.maps.load(() => {
-                var container = document.getElementById('map')
-                var options = {
-                    center: new window.kakao.maps.LatLng(33.450701, 126.570667),
-                    level: 3,
-                }
-                map = new kakao.maps.Map(container, options); // 전역 map 변수에 할당
-            })
-        }
+        const bounds = new kakao.maps.LatLngBounds()
+        let markers = []
+        for (var i = 0; i < places.length; i++) {
 
-        kakaoMapScript.addEventListener('load', onLoadKakaoAPI)
-    }, [])
-    const handleClickSearch = () => {
-        console.log(searchValue.current.value);
-        //마커 초기화
-        for (var i = 0; i < locList.length; i++) {
-            locList[i].marker.setMap(null);
+            var position = new kakao.maps.LatLng(places[i].y, places[i].x)
+        
+            var {marker, overlay} = putMarker(position)
+            bounds.extend(new kakao.maps.LatLng(places[i].y, places[i].x))
+            markers.push({place: places[i], marker: marker, overlay:overlay})
         }
-        var ps = new window.kakao.maps.services.Places();
-        ps.keywordSearch(searchValue.current.value, (data, status, pagination) => placesSearchCB(data, status, pagination, setLocList));
+        
+        setLocList(markers)
+        map.setBounds(bounds)
     }
     const handleSubmit = (event) => {
         event.preventDefault(); // 폼의 기본 동작인 전송을 막음
@@ -129,80 +60,90 @@ export default function Myloc() {
             console.log(res)
           })();
     }
+
     const handleClickPlace = (value) => {
-        console.log(value)
+        console.log(value.marker)
         for (var i = 0; i < locList.length; i++) {
-            locList[i].infowindow.setMap(null);
+            locList[i].overlay.setMap(null);
         }
+        
         map.panTo(value.marker.getPosition()); 
-        value.infowindow.setMap(map);
+        value.overlay.setMap(map);
+
+    }
+  
+    const handleClickHeart = async (place) => {
+        // console.log(place)
+        try {
+            delete place._id
+            const res = await Axios.post(`/api/v1/loc/${place.id}`, place)
+            setUserLocList(res.data)
+            
+        } catch ({response}) {
+            console.log(response)
+            alert("로그인 후 이용 가능합니다")
+        }
+        
 
     }
 
-    return (
-        <>
-            <Header handleSubmit={handleSubmit} searchValue={searchValue} setViewMode={setViewMode}/>
-            <hr/>
-            <div className="flex ">
-                <div id="map" style={{ width: 'calc(100vw - 400px)', height: 'calc(100vh - 66px)' }}></div>
-                <div className="flex-1 overflow-auto" style={{ height: "calc(100vh - 66px)" }}>
-                    {/* 로그인되어있을 경우 유저 장소 표시 */}
-                    {isLogin && (
-                        <>
-                        {viewMode}
-                        </>
-                    )}
-                    <ul className="">
-                    {locList.map((value, index) => {
-                        return (
-                            <li key={index} className="p-2 flex gap-3 py-3 border-b-2"  onClick={() => {handleClickPlace(value)}}>
-                            <div className="skeleton w-24 h-24"></div>
-                            <div className="flex-1">
-                                <h2 className="font-bold text-lg">{value.place.place_name}</h2>
-                                <p className="text-sm text-gray-700">{value.place.address_name}</p>
-                                <p className="text-sm text-gray-700 overflow-hidden whitespace-nowrap text-ellipsis w-56">{value.place.category_name}</p>
-                                <div className="text-right pr-2"><div className="badge badge-md border-red-400 text-red-400 " onClick={() => {console.log(3)}}>987,654❤️</div></div>
-                            </div>
-                        </li>
-                        );   
-                    })}
-                    </ul>
+  return (
 
-                </div>
+    <>
+      <Header handleSubmit={handleSubmit} searchValue={searchValue} setViewMode={setViewMode}/>
+      <hr/>
+      <div className="flex ">
+      <div style={{ width: 'calc(100vw - 400px)', height: 'calc(100vh - 66px)' }} ref={setContainer}></div>
+
+        <div className="flex-1 overflow-auto" style={{ height: "calc(100vh - 66px)" }}>
+          <div className="p-2">
+            <div className="font-semibold">
+                전체 장소 {userLocList.length}
             </div>
-
-            {/* <div className="map_wrap">
-                <div id="map" style={{ width: '100%', height: '100vh' }}></div>
-
-                <div id="menu_wrap" className="bg_white">
-                    <div className="option">
-                        <div>
-                            <form onSubmit={handleSubmit}>
-                                키워드 : <input type="text" ref={searchValue} id="keyword" size="15" />
-                                <button type="submit">검색하기</button>
-                            </form>
-                        </div>
+            <hr/>
+            <div className="w-full">
+            {locList.map((value,index) => {
+                return (
+                <div key={index} className="py-2 border-b-2">
+                    <div className="flex items-center cursor-pointer"  onClick={() => { handleClickPlace(value) }}>
+                        <span className="font-bold   whitespace-nowrap">{value.place.place_name}</span>
+                        <div className="pl-1 text-sm text-gray-700 overflow-hidden whitespace-nowrap text-ellipsis ">{value.place.address_name}</div>
                     </div>
-                    <hr /> 
-				
-					<h1 className="text-3xl font-bold underline">
-						Hello world!
-						</h1>
-                    <ul id="placesList">
-						{locList.map((value, index) => {
-						return (
-							<li key={index} onClick={() => {handleClickPlace(value)}}>
-								<div>{value.place.place_name}</div>
-								<div>{value.place.address_name}</div>
-								<hr />
-							</li>
-							
-						);
-						})}
-					</ul>
-                    <div id="pagination"></div>
+                    <div className="flex justify-between">
+                        <p className="text-sm text-gray-700 overflow-hidden whitespace-nowrap text-ellipsis w-56">{value.place.category_name}</p>
+                        <div className={`badge badge-md bg-red-400 text-white`} onClick={() => { handleClickHeart(value.place) }}>저장❤️</div>
+                    </div>
+                    
                 </div>
-            </div> */}
-        </>
-    );
+                
+                )
+            })}
+            </div>
+          
+            
+          </div>
+          {/* <ul className="">
+            {locList.map((value, index) => {
+              return (
+                <li key={index} className="p-2 flex gap-3 py-3 border-b-2" >
+                  <div className="skeleton w-24 h-24"></div>
+                  <div className="flex-1">
+                    <h2 className="font-bold text-lg cursor-pointer" onClick={() => { handleClickPlace(value) }}>{value.place.place_name}</h2>
+                    <p className="text-sm text-gray-700">{value.place.address_name}</p>
+                    <p className="text-sm text-gray-700 overflow-hidden whitespace-nowrap text-ellipsis w-56">{value.place.category_name}</p>
+                    <div className="text-right pr-2"><div className={`badge badge-md ${userLocList.includes(value.place.id) ? 'bg-red-400 text-white' : 'border-red-400 text-red-400'}`} onClick={() => { handleClickHeart(value.place) }}>저장❤️</div></div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul> */}
+
+        </div>
+      </div>
+
+ 
+    </>
+  );
 }
+
+

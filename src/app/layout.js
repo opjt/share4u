@@ -3,7 +3,6 @@ import "./globals.css";
 import AuthSession from "@/util/session";
 import Script from "next/script";
 const KAKAO_SDK_URL = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_APP_JS_KEY}&autoload=false&libraries=services`;
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "NEXTJS",
@@ -14,7 +13,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       
-      <body className={inter.className}>
+      <body >
       <Script src={KAKAO_SDK_URL} strategy="beforeInteractive" />
       <AuthSession>{children}</AuthSession></body>
     </html>

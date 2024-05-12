@@ -14,7 +14,7 @@ export default function Header({ handleSubmit, searchValue, setViewMode }) {
             <div className="flex-none gap-2">
                 {isLogin && (
                     <div className='flex gap-2 mr-2 font-medium'>
-                        <h1 className='btn btn-sm' onClick={() => setViewMode("장소")}>내 장소</h1>
+                        <Link href="/my/loc" className='btn btn-sm' onClick={() => setViewMode("장소")}>내 장소</Link>
                         <h1 className='btn btn-sm' onClick={() => setViewMode("리스트")}>내 리스트</h1>
                     </div>
                 )}
