@@ -3,7 +3,7 @@ import { signIn, signOut } from "next-auth/react"
 import useCustomLogin from '@/app/hooks/useCustomLogin'
 import Link from 'next/link';
 
-export default function Header({ handleSubmit, searchValue, setViewMode }) {
+export default function Header({ handleSubmit, searchValue }) {
     const { isLogin, getUser,doLogin } = useCustomLogin();
     // console.log(isLogin)
     return (
@@ -14,8 +14,8 @@ export default function Header({ handleSubmit, searchValue, setViewMode }) {
             <div className="flex-none gap-2">
                 {isLogin && (
                     <div className='flex gap-2 mr-2 font-medium'>
-                        <Link href="/my/loc" className='btn btn-sm' onClick={() => setViewMode("장소")}>내 장소</Link>
-                        <h1 className='btn btn-sm' onClick={() => setViewMode("리스트")}>내 리스트</h1>
+                        <Link href="/my/loc" className='btn btn-sm'>내 장소</Link>
+                        <h1 className='btn btn-sm' >내 리스트</h1>
                     </div>
                 )}
 

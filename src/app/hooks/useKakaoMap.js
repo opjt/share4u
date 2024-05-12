@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-function makeDiv(overlay) {
+function makeDiv(overlay, data) {
     var content = document.createElement('div');
     content.className = 'wrap';
     var info = document.createElement('div');
@@ -8,7 +8,7 @@ function makeDiv(overlay) {
 
     var title = document.createElement('div');
     title.className = 'title';
-    title.textContent = 123123;
+    title.textContent = data?.place_name;
 
     var closeBtn = document.createElement('div');
     closeBtn.className = 'close';
@@ -25,7 +25,7 @@ function makeDiv(overlay) {
 
     var jibun1 = document.createElement('div');
     jibun1.className = 'jibun ellipsis';
-    jibun1.textContent = 123123;
+    jibun1.textContent = data?.address_name;
 
     var jibun2 = document.createElement('div');
     jibun2.className = 'jibun ellipsis';
@@ -46,7 +46,8 @@ const useKakaoMap = (mapContainer) => {
     const [kakao, setKakao] = useState(null)
     const [services, setServices] = useState(null)
 
-    const putMarker = (position) => {
+    
+    const putMarker = (position, data) => {
         var imageSrc = '/img/marker.png', // 마커이미지의 주소입니다   342 512  171 256  85 128
         imageSize = new kakao.maps.Size(25, 37), // 마커이미지의 크기입니다
         imageOption = {offset: new kakao.maps.Point(12, 40)}; // 마커이미지의 옵션입니다. 마커의 좌표와 일치시킬 이미지 안에서의 좌표를 설정합니다.
@@ -65,7 +66,7 @@ const useKakaoMap = (mapContainer) => {
             
             position: position
         });
-        var content = makeDiv(overlay)
+        var content = makeDiv(overlay,data)
         
         overlay.setContent(content)
         // 마커에 mouseover 이벤트를 등록하고 마우스 오버 시 인포윈도우를 표시합니다 
@@ -83,6 +84,7 @@ const useKakaoMap = (mapContainer) => {
         return {marker:marker, overlay: overlay}
     }
     useEffect(() => {
+
         if (!mapContainer) return
 
         window.kakao?.maps.load(() => {
@@ -95,6 +97,8 @@ const useKakaoMap = (mapContainer) => {
             setMap(new window.kakao.maps.Map(mapContainer, options))
             
             setServices(window.kakao.maps.services)
+    
+            
         })
     }, [mapContainer])
     return {

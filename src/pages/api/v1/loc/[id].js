@@ -14,32 +14,38 @@ export default async function handler(req, res) {
         const result = await db.collection('user').countDocuments({loclist: {$elemMatch: {$eq: id }}});
         res.status(200).json(result)
     }
+    if(req.method==='PATCH') {
+        var result = await db.collection('user').updateOne(
+            { email: user_email, "loclist.id": id }, // 조건: 이메일이 일치하고 loclist 배열에 해당 id를 가진 객체가 있는지 확인
+            { $set: { "loclist.$.tag": body.value } } // loclist 배열 내에서 해당 id를 가진 객체의 tag 값을 변경
+          );
+        res.status(200).json(result)
+    }
     if (req.method === 'POST') {
 
         await db.collection('loclist').updateOne({id:body.id}, {$set: body}, { upsert: true }) //장소전체목록에 추가
 
-        const filter = {
-            email: user_email,
-            loclist: { $elemMatch: { $eq: id } } // loclist 배열 필드에서 valueToCheck와 일치하는 요소 확인
-        };
-        // 배열에 값이 있는지 확인하는 쿼리 실행
-        var userWithMatchingValue = await db.collection('user').findOne(filter);
-        console.log(userWithMatchingValue)
-        if (userWithMatchingValue) { //값이 있으면 
-            var update = {
-                $pull: { loclist: id } // 배열에서 값 제거
-            };
-            // 배열 업데이트
-            var result = await db.collection('user').updateOne(filter, update);
-        } else {
-            var update = {
-                $addToSet: { loclist: id } // 배열에 값이 없으면 추가
-            };
-            // 배열 업데이트
-            var result = await db.collection('user').updateOne({ email: user_email }, update);
-        }
 
-        var returnValue = await db.collection('user').findOne({email:user_email});
-        res.status(200).json(returnValue.loclist)
+        // 배열에 값이 있는지 확인하는 쿼리 실행
+        var {loclist} = await db.collection('user').findOne({ email: user_email});
+        const idExists = loclist.some(item => item.id === id);
+        if(!idExists) { //값이 없으면
+            var update = {
+                $addToSet: { loclist: {id:id,tag:[]} } // 배열에 값이 없으면 추가
+            };
+            var result = await db.collection('user').updateOne({ email: user_email}, update);
+
+        } else { //값이 있으면
+            var update = {
+                $pull: { loclist: {id:id} } // 배열에 값이 없으면 추가
+            };
+            var result = await db.collection('user').updateOne({ email: user_email}, update);
+
+        }
+        var {loclist} = await db.collection('user').findOne({ email: user_email});
+        const idList = loclist.map(item => item.id);
+        console.log(idList)
+        
+        res.status(200).json(idList)
     }
 }

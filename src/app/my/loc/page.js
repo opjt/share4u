@@ -6,96 +6,156 @@ import '@/app/components/kmap.css'
 import Axios from "@/util/axios";
 import useKakaoMap from "@/app/hooks/useKakaoMap";
 import useCustomLogin from '@/app/hooks/useCustomLogin'
+import LocEditTag from '@/app/components/modal/locEditTag'
 
 
 export default function Kmap() {
   
-
   const searchValue = useRef();
-    const [locList, setLocList] = useState([]);
-    const [userLocList, setUserLocList] = useState([])
-    const [viewMode, setViewMode] = useState()
-    const { isLogin,getUser } = useCustomLogin();
+  const addListInputValue = useRef()
 
-    const [container, setContainer ] = useState(null)
-    const {map, putMarker, kakao} = useKakaoMap(container)
+  const [locList, setLocList] = useState([]);
+  const [tagList, setTagList] = useState([]);
+  const [userLocList, setUserLocList] = useState([])
+  const [modal, setModal] = useState(null)
+  const { isLogin,getUser } = useCustomLogin();
 
-    useEffect(() => {
-        (async function () {
-            const res = await Axios.get(`/api/v1/loc`)
-            
-            setUserLocList(res.data.list)
-        })();
-    },[])
-    useEffect(() => {
-        (async function () {
-            const res = await Axios.get(`/api/v1/loc`)
-            setMarkers(res.data.loc)
-            // setLocList(res.data.loc)
-        })();
-    },[userLocList])
-    const setMarkers = (places) => {
-   
-        if(!kakao) return
+  const [container, setContainer ] = useState(null)
+  const {map, putMarker, kakao} = useKakaoMap(container)
 
-        const bounds = new kakao.maps.LatLngBounds()
-        let markers = []
-        for (var i = 0; i < places.length; i++) {
-
-            var position = new kakao.maps.LatLng(places[i].y, places[i].x)
-        
-            var {marker, overlay} = putMarker(position)
-            bounds.extend(new kakao.maps.LatLng(places[i].y, places[i].x))
-            markers.push({place: places[i], marker: marker, overlay:overlay})
-        }
-        
-        setLocList(markers)
-        map.setBounds(bounds)
-    }
-    const handleSubmit = (event) => {
-        event.preventDefault(); // 폼의 기본 동작인 전송을 막음
-        handleClickSearch(); // 검색 함수 호출
-        (async function () {
-            var res = await Axios.get(`/api/h`)
-            console.log(res)
-          })();
-    }
-
-    const handleClickPlace = (value) => {
-        console.log(value.marker)
-        for (var i = 0; i < locList.length; i++) {
-            locList[i].overlay.setMap(null);
-        }
-        
-        map.panTo(value.marker.getPosition()); 
-        value.overlay.setMap(map);
-
-    }
+  const [visibleAddList, setVisibleAddList] = useState(false);
   
-    const handleClickHeart = async (place) => {
-        // console.log(place)
-        try {
-            delete place._id
-            const res = await Axios.post(`/api/v1/loc/${place.id}`, place)
-            setUserLocList(res.data)
-            
-        } catch ({response}) {
-            console.log(response)
-            alert("로그인 후 이용 가능합니다")
-        }
-        
 
-    }
+  useEffect(() => {
+      (async function () {
+          const res = await Axios.get(`/api/v1/loc`)
+          
+          setUserLocList(res.data.list)
+          const res2 = await Axios.get(`/api/v1/loc/list/`)
+          
+          setTagList(res2.data)
+
+      })();
+  },[])
+  useEffect(() => {
+      (async function () {
+          const res = await Axios.get(`/api/v1/loc`)
+          console.log(res.data.loc)
+          setMarkers(res.data.loc)
+          // setLocList(res.data.loc)
+      })();
+  },[userLocList, kakao])
+  const setMarkers = (places) => {
+  
+      if(!kakao) return
+
+      const bounds = new kakao.maps.LatLngBounds()
+      let markers = []
+      for (var i = 0; i < places.length; i++) {
+
+          var position = new kakao.maps.LatLng(places[i].y, places[i].x)
+      
+          var {marker, overlay} = putMarker(position)
+          bounds.extend(new kakao.maps.LatLng(places[i].y, places[i].x))
+          markers.push({place: places[i], marker: marker, overlay:overlay})
+      }
+      
+      setLocList(markers)
+      map.setBounds(bounds)
+  }
+  const handleSubmit = (event) => {
+      event.preventDefault(); // 폼의 기본 동작인 전송을 막음
+      handleClickSearch(); // 검색 함수 호출
+      (async function () {
+          var res = await Axios.get(`/api/h`)
+          console.log(res)
+        })();
+  }
+
+  const handleClickPlace = (value) => {
+      console.log(value.marker)
+      for (var i = 0; i < locList.length; i++) {
+          locList[i].overlay.setMap(null);
+      }
+      
+      map.panTo(value.marker.getPosition()); 
+      value.overlay.setMap(map);
+
+  }
+  const handleClickLocTag = async (place) => {
+    setModal({id: place.id, place:place})
+  }
+  const handleClickAddList = async () => {
+    
+    console.log(addListInputValue.current.value)
+    var value = addListInputValue.current.value;
+    
+    const res = await Axios.post(`/api/v1/loc/list/`, {name:value})
+    console.log(res)
+    addListInputValue.current.value = null;
+  }
+  const handleClickHeart = async (place) => {
+      // console.log(place)
+      try {
+          delete place._id
+          const res = await Axios.post(`/api/v1/loc/${place.id}`, place)
+          setUserLocList(res.data)
+          
+      } catch ({response}) {
+          console.log(response)
+          alert("로그인 후 이용 가능합니다")
+      }
+  }
+  const handleClickLocTagEnd = async (place, value) => {
+    setModal(null)
+    console.log(value)
+    console.log(place)
+    
+    const res = await Axios.patch(`/api/v1/loc/${place.id}`, {value: value})
+    alert("리스트에 적용되었습니다")
+    
+
+
+  }
 
   return (
 
     <>
-      <Header handleSubmit={handleSubmit} searchValue={searchValue} setViewMode={setViewMode}/>
+      <Header handleSubmit={handleSubmit} searchValue={searchValue}  />
+      {modal && (
+        <LocEditTag place={modal.place} list={tagList} callbackFn={handleClickLocTagEnd} />
+      )}
+      
       <hr/>
       <div className="flex ">
       <div style={{ width: 'calc(100vw - 400px)', height: 'calc(100vh - 66px)' }} ref={setContainer}></div>
 
         <div className="flex-1 overflow-auto" style={{ height: "calc(100vh - 66px)" }}>
+          <div className="p-2"> 
+            <div className="font-semibold">
+              전체 리스트
+            </div>
+            <div className=" pb-2">
+              <div className="badge badge-md badge-ghost"  onClick={()=> {document.getElementById('my_modal_1').showModal()}}>+ 새 리스트 만들기</div>
+            </div>
+            <hr/>
+            {tagList.map((value,index) => {
+              return (
+                <div  key={index}>
+                  <div className="bg-base-200 p-2 flex justify-between border-b-2 items-center">
+                    <div className="font-semibold">
+                      <span >{value}</span><div className=" ml-2 badge badge-neutral">+1</div>
+                    </div>
+                    <div>
+                      <span className="text-sm btn btn-sm btn-ghost bg-base-300">편집</span>
+                    </div>
+                  </div>
+              </div>
+              )
+            })}
+            
+            
+          </div>
           <div className="p-2">
             <div className="font-semibold">
                 전체 장소 {userLocList.length}
@@ -111,7 +171,11 @@ export default function Kmap() {
                     </div>
                     <div className="flex justify-between">
                         <p className="text-sm text-gray-700 overflow-hidden whitespace-nowrap text-ellipsis w-56">{value.place.category_name}</p>
-                        <div className={`badge badge-md bg-red-400 text-white`} onClick={() => { handleClickHeart(value.place) }}>저장❤️</div>
+                        <div>
+                          <div className="badge badge-md bg-base-200" onClick={() => { handleClickLocTag(value.place) }}>+추가</div>
+                          <div className={`badge badge-md bg-red-400 text-white`} onClick={() => { handleClickHeart(value.place) }}>저장❤️</div>
+                        </div>
+                        
                     </div>
                     
                 </div>
@@ -119,9 +183,8 @@ export default function Kmap() {
                 )
             })}
             </div>
-          
-            
           </div>
+
           {/* <ul className="">
             {locList.map((value, index) => {
               return (
@@ -140,6 +203,23 @@ export default function Kmap() {
 
         </div>
       </div>
+      {/* 시간 모달 */}
+      <dialog id="my_modal_1" className="modal">
+        <div className="modal-box max-w-sm">
+            <h3 className="font-bold text-lg mb-2">리스트 추가</h3>
+            <input ref={addListInputValue} type="text" placeholder="리스트명을 입력하시오" className="input input-bordered w-full max-w-xs" />
+            <div className="modal-action">
+            <form method="dialog">
+                {/* if there is a button in form, it will close the modal */}
+                <button className="btn btn-neutral mr-2" onClick={handleClickAddList} >추가</button>
+                <button className="btn" name="time" >취소</button>
+            </form>
+            </div>
+        </div>
+        <form method="dialog" className="modal-backdrop">
+            <button>close</button>
+        </form>
+        </dialog>
 
  
     </>
