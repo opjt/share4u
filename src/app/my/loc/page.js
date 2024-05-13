@@ -88,6 +88,7 @@ export default function Kmap() {
     }
     try {
       const res = await Axios.post(`/api/v1/loc/list/`, {name:value})
+      setTagList(res.data)
       console.log(res)
       
     } catch ({response}) {
@@ -126,6 +127,34 @@ export default function Kmap() {
   const handleClickTag = (tag) => {
     setVisibleTag(tag)
   }
+  
+  const editTag = async (value,e) => { //리스트 이름 수정
+    console.log(value)
+    const tag = e.target.previousSibling.value
+
+    try {
+      const res = await Axios.patch(`/api/v1/loc/list/${value}`, {value:tag})
+      setTagList(res.data)
+      setUserLocList([...userLocList])
+      alert("수정되었습니다")
+      
+    } catch ({response}) {
+      alert(response.data.error)
+    }
+  }
+  const dropTag = async (value) => { //리스트 삭제
+    console.log(value)
+
+    try {
+      const res = await Axios.delete(`/api/v1/loc/list/${value}`)
+      setTagList(res.data)
+      setUserLocList([...userLocList])
+      alert("삭제되었습니다")
+      
+    } catch ({response}) {
+      alert(response.data.error)
+    }
+  }
 
   return (
 
@@ -147,11 +176,9 @@ export default function Kmap() {
             <div className=" pb-2">
               <div className="badge badge-md badge-ghost"  onClick={()=> {document.getElementById('my_modal_1').showModal()}}>+ 새 리스트 만들기</div>
             </div>
-            {visibleTag && (
-                <div className=" pb-2">
-                <div className="badge badge-md badge-neutral cursor-pointer" onClick={() => {setVisibleTag(null)}} >전체 보기</div>
-              </div>
-            )}
+            <div className={`${visibleTag ? '' : 'hidden'} pb-2 `}>
+            <div className="badge badge-md badge-neutral cursor-pointer" onClick={() => {setVisibleTag(null)}}>전체 보기</div>
+          </div>
             
             <hr/>
             {tagList.map((value,index) => {
@@ -159,11 +186,35 @@ export default function Kmap() {
                 <div  key={index}>
                   <div className="bg-base-200 p-2 flex justify-between border-b-2 items-center">
                     <div className="font-semibold">
-                      <span onClick={() => {handleClickTag(value)}}>{value}</span><div className=" ml-2 badge badge-neutral">{locList.reduce((acc, item) => acc + (item.place.tag.includes(value) ? 1 : 0), 0)}</div>
+                      <span className="cursor-pointer"onClick={() => {handleClickTag(value)}}>{value}</span><div className=" ml-2 badge badge-neutral">{locList.reduce((acc, item) => acc + (item.place.tag.includes(value) ? 1 : 0), 0)}</div>
                     </div>
                     <div>
-                      <span className="text-sm btn btn-sm btn-ghost bg-base-300">편집</span>
+                      <span className="text-sm btn btn-sm btn-ghost bg-base-300" onClick={()=> {document.getElementById(`modal-${value}`).showModal()}}>편집</span>
                     </div>
+
+                    <dialog id={`modal-${value}`} className="modal">
+                    <div className="modal-box max-w-sm">
+                        <h3 className="font-bold text-lg mb-2">#{value}</h3>
+                        <div className="label">
+                          <span className="label-text">리스트 이름 수정</span>
+                        </div>
+                        <div className="join">
+                        <input className="input input-bordered join-item" placeholder={value}/>
+                        <button className="btn join-item" onClick={(event) => {editTag(value,event)}}>수정</button>
+                      </div>
+                        <div className="modal-action">
+                        <form method="dialog">
+                            {/* if there is a button in form, it will close the modal */}
+                            <button className="btn btn-error mr-2" onClick={() => dropTag(value)} >삭제</button>
+                            <button className="btn" name="time" >닫기</button>
+                        </form>
+                        </div>
+                    </div>
+                    <form method="dialog" className="modal-backdrop">
+                        <button>close</button>
+                    </form>
+                    </dialog>
+
                   </div>
               </div>
               )
