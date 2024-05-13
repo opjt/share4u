@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from "react";
 import Header from "@/app/components/layout/header";
 import '@/app/components/kmap.css'
@@ -10,7 +11,7 @@ import LocEditTag from '@/app/components/modal/locEditTag'
 
 
 export default function Kmap() {
-  
+  const router = useRouter();  
   const searchValue = useRef();
   const addListInputValue = useRef()
 
@@ -32,7 +33,7 @@ export default function Kmap() {
           
           setUserLocList(res.data.list)
           const res2 = await Axios.get(`/api/v1/loc/list/`)
-            
+          
           setTagList(res2.data)
 
       })();
@@ -40,7 +41,6 @@ export default function Kmap() {
   useEffect(() => {
       (async function () {
           const res = await Axios.get(`/api/v1/loc`)
-          console.log(res.data.loc)
           setMarkers(res.data.loc)
           // setLocList(res.data.loc)
       })();
@@ -55,7 +55,7 @@ export default function Kmap() {
 
           var position = new kakao.maps.LatLng(places[i].y, places[i].x)
       
-          var {marker, overlay} = putMarker(position)
+          var {marker, overlay} = putMarker(position, places[i])
           bounds.extend(new kakao.maps.LatLng(places[i].y, places[i].x))
           markers.push({place: places[i], marker: marker, overlay:overlay})
       }
@@ -155,11 +155,15 @@ export default function Kmap() {
       alert(response.data.error)
     }
   }
+  const handleSubmit = (e) => {
+    e.preventDefault(); // 폼의 기본 동작인 전송을 막음
+    router.push(`/?search=${searchValue.current.value}`)
+  }
 
   return (
 
     <>
-      <Header  searchValue={searchValue}  />
+      <Header  searchValue={searchValue} handleSubmit={handleSubmit}  />
       {modal && (
         <LocEditTag place={modal.place} list={tagList} callbackFn={handleClickLocTagEnd} />
       )}
@@ -181,7 +185,7 @@ export default function Kmap() {
           </div>
             
             <hr/>
-            {tagList.map((value,index) => {
+            {tagList.length > 0 && tagList.map((value,index) => {
               return (
                 <div  key={index}>
                   <div className="bg-base-200 p-2 flex justify-between border-b-2 items-center">
@@ -222,8 +226,6 @@ export default function Kmap() {
             
           </div>
           <div className="p-2">
-            
-
             <div className="font-semibold">
               {visibleTag ? (<>#{visibleTag} </>) : (<>전체 장소 {userLocList.length}</>)}
               
@@ -261,23 +263,6 @@ export default function Kmap() {
             })}
             </div>
           </div>
-
-          {/* <ul className="">
-            {locList.map((value, index) => {
-              return (
-                <li key={index} className="p-2 flex gap-3 py-3 border-b-2" >
-                  <div className="skeleton w-24 h-24"></div>
-                  <div className="flex-1">
-                    <h2 className="font-bold text-lg cursor-pointer" onClick={() => { handleClickPlace(value) }}>{value.place.place_name}</h2>
-                    <p className="text-sm text-gray-700">{value.place.address_name}</p>
-                    <p className="text-sm text-gray-700 overflow-hidden whitespace-nowrap text-ellipsis w-56">{value.place.category_name}</p>
-                    <div className="text-right pr-2"><div className={`badge badge-md ${userLocList.includes(value.place.id) ? 'bg-red-400 text-white' : 'border-red-400 text-red-400'}`} onClick={() => { handleClickHeart(value.place) }}>저장❤️</div></div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul> */}
-
         </div>
       </div>
       {/* 시간 모달 */}
@@ -297,8 +282,6 @@ export default function Kmap() {
             <button>close</button>
         </form>
         </dialog>
-
- 
     </>
   );
 }

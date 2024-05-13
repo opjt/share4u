@@ -1,44 +1,5 @@
 import { useEffect, useState } from "react"
 
-function makeDiv(overlay, data) {
-    var content = document.createElement('div');
-    content.className = 'wrap';
-    var info = document.createElement('div');
-    info.className = 'info';
-
-    var title = document.createElement('div');
-    title.className = 'title';
-    title.textContent = data?.place_name;
-
-    var closeBtn = document.createElement('div');
-    closeBtn.className = 'close';
-    closeBtn.title = '닫기';
-    closeBtn.onclick = function() {
-        overlay.setMap(null)
-    };
-
-    title.appendChild(closeBtn);
-    info.appendChild(title);
-
-    var desc = document.createElement('div');
-    desc.className = 'desc';
-
-    var jibun1 = document.createElement('div');
-    jibun1.className = 'jibun ellipsis';
-    jibun1.textContent = data?.address_name;
-
-    var jibun2 = document.createElement('div');
-    jibun2.className = 'jibun ellipsis';
-    jibun2.textContent = '(우) 63309 (지번) 영평동 2181';
-
-    desc.appendChild(jibun1);
-    desc.appendChild(jibun2);
-    info.appendChild(desc);
-
-    content.appendChild(info);
-
-    return content;
-}
 
 
 const useKakaoMap = (mapContainer) => {
@@ -63,12 +24,38 @@ const useKakaoMap = (mapContainer) => {
         });
 
         var overlay = new kakao.maps.CustomOverlay({
-            
             position: position
         });
-        var content = makeDiv(overlay,data)
-        
-        overlay.setContent(content)
+        var contDiv = `
+              <div class="mt-[-180px]">
+              <div class="card w-96 h-28 bg-base-100 shadow-xl trang ">
+                <div class="card-body p-4">
+              
+                  <div class='flex justify-between'> 
+                      <div class='flex items-center gap-2 w-80 '>
+                          <div class='font-bold'>${data.place_name}</div>
+                          <div class='text-gray-600 text-sm text-ellipsis whitespace-nowrap overflow-hidden'>${data.address_name}</div>
+                      </div>
+                      <button class="btn btn-square btn-sm close right">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+                  
+                  
+                  <p >comment,,</p>
+                </div>
+              </div>
+                  
+              </div>
+            `
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = contDiv;
+
+        const closeBtn = tempDiv.querySelector('.close');
+        closeBtn.addEventListener('click', () => { //닫기 이벤트 추가
+            overlay.setMap(null);
+        });    
+        overlay.setContent(tempDiv)
         // 마커에 mouseover 이벤트를 등록하고 마우스 오버 시 인포윈도우를 표시합니다 
         // window.kakao.maps.event.addListener(marker, 'mouseover', function () {
         //     overlay.setMap(map);
@@ -78,7 +65,9 @@ const useKakaoMap = (mapContainer) => {
         // window.kakao.maps.event.addListener(marker, 'mouseout', function () {
         //     overlay.setMap(null);
         // });
+ 
         window.kakao.maps.event.addListener(marker, 'click', function () {
+
             overlay.setMap(map);
         });
         return {marker:marker, overlay: overlay}
@@ -91,16 +80,26 @@ const useKakaoMap = (mapContainer) => {
             setKakao(window.kakao)
             // console.log(mapContainer)
             var options = {
-                center: new window.kakao.maps.LatLng(33.450701, 126.570667),
-                level: 3,
+                center: new window.kakao.maps.LatLng(36.508 , 127.957),
+                level: 12,
             }
             setMap(new window.kakao.maps.Map(mapContainer, options))
             
             setServices(window.kakao.maps.services)
-    
+        
             
         })
     }, [mapContainer])
+    // useEffect(() => {
+    //     if (!map) return 
+    //     // map이 변경되었을 때 원하는 작업 수행
+    //     console.log("Map 객체가 변경되었습니다.");
+        
+    //     // 예: map 객체에 이벤트 리스너 추가
+    //     kakao.maps.event.addListener(map, 'dragend', function() {        
+    //         console.log("지도 이동이 완료되었습니다.");
+    //     });
+    // }, [map]);
     return {
         map, putMarker,services,kakao
     }

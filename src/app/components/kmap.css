@@ -16,7 +16,21 @@
     padding: 0;
     margin: 0;
 }
+.trang:after {
+        content:'';
+        position: absolute;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        width: 0;
+        height: 0;
+        bottom:-20px;
+        border-top: 20px solid white;
+        border-left: 18px solid transparent;
+        border-right: 18px solid transparent;
+;
 
+}
 .wrap .info {
     width: 286px;
     height: 120px;

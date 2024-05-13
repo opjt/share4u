@@ -42,7 +42,9 @@ export default function Kmap() {
      
     },[kakao])
 
-
+    const ClickTest= () => {
+      console.log("tq")
+    }
 
     const handleClickSearch = (search) => {
         var searchText = searchValue.current.value
@@ -66,12 +68,12 @@ export default function Kmap() {
             for (var i = 0; i < data.length; i++) {
    
               var position = new kakao.maps.LatLng(data[i].y, data[i].x)
-           
+              
               var {marker, overlay} = putMarker(position, data[i])
               bounds.extend(new kakao.maps.LatLng(data[i].y, data[i].x))
               markers.push({place: data[i], marker: marker, overlay:overlay})
             }
-            
+        
             setLocList(markers)
     
             // 검색된 장소 위치를 기준으로 지도 범위를 재설정합니다
@@ -126,6 +128,9 @@ export default function Kmap() {
         <div className="flex-1 overflow-auto" style={{ height: "calc(100vh - 66px)" }}>
 
           <ul className="">
+            {locList.length == 0 && (
+              <p className='text-lg font-bold text-center mt-5'>검색하여 서비스를 시작해보세요</p>
+            )}
             {locList.map((value, index) => {
               return (
                 <li key={index} className="p-2 flex gap-3 py-3 border-b-2" >
