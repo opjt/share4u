@@ -13,6 +13,9 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
         console.log(body)
         var returnValue = await db.collection('user').findOne({email:user_email});
+        if(returnValue.taglist.includes(body.name)) {
+            res.status(401).json({error:"이미 존재하는 리스트 이름입니다"})
+        }
         var update = {
             $addToSet: { taglist: body.name } // 배열에 값이 없으면 추가
         };

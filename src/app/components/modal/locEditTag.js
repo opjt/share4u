@@ -1,8 +1,16 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import Axios from "@/util/axios";
 export default function LocEditTagModal({ list, place, callbackFn }) {
   const [checkedItems, setCheckedItems] = useState({});
 
+  useEffect(() => {
+    console.log(place)
+    var arr= {};
+    place.tag.map((value) => {
+      arr[value] = true
+    })
+    setCheckedItems(arr)
+  },[])
   const handleCloseModal = (e) => {
     if (e.target.closest(".modal-box")) {
       return;

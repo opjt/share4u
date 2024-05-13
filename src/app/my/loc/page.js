@@ -23,7 +23,7 @@ export default function Kmap() {
   const [container, setContainer ] = useState(null)
   const {map, putMarker, kakao} = useKakaoMap(container)
 
-  const [visibleAddList, setVisibleAddList] = useState(false);
+  const [visibleTag, setVisibleTag] = useState(null);
   
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function Kmap() {
           
           setUserLocList(res.data.list)
           const res2 = await Axios.get(`/api/v1/loc/list/`)
-          
+            
           setTagList(res2.data)
 
       })();
@@ -63,14 +63,7 @@ export default function Kmap() {
       setLocList(markers)
       map.setBounds(bounds)
   }
-  const handleSubmit = (event) => {
-      event.preventDefault(); // 폼의 기본 동작인 전송을 막음
-      handleClickSearch(); // 검색 함수 호출
-      (async function () {
-          var res = await Axios.get(`/api/h`)
-          console.log(res)
-        })();
-  }
+ 
 
   const handleClickPlace = (value) => {
       console.log(value.marker)
@@ -89,10 +82,21 @@ export default function Kmap() {
     
     console.log(addListInputValue.current.value)
     var value = addListInputValue.current.value;
-    
-    const res = await Axios.post(`/api/v1/loc/list/`, {name:value})
-    console.log(res)
+    if(value.trim() == '') {
+      alert("리스트명을 입력해주세요")
+      return
+    }
+    try {
+      const res = await Axios.post(`/api/v1/loc/list/`, {name:value})
+      console.log(res)
+      
+    } catch ({response}) {
+      alert(response.data.error)
+    }
     addListInputValue.current.value = null;
+    
+    
+   
   }
   const handleClickHeart = async (place) => {
       // console.log(place)
@@ -108,20 +112,25 @@ export default function Kmap() {
   }
   const handleClickLocTagEnd = async (place, value) => {
     setModal(null)
-    console.log(value)
-    console.log(place)
-    
+    if(!place) return
     const res = await Axios.patch(`/api/v1/loc/${place.id}`, {value: value})
+    locList.map((val) => {
+      if(val.place.id == place.id) {
+        val.place.tag = value
+      } 
+    })
+    setUserLocList([...userLocList])
     alert("리스트에 적용되었습니다")
     
-
-
+  }
+  const handleClickTag = (tag) => {
+    setVisibleTag(tag)
   }
 
   return (
 
     <>
-      <Header handleSubmit={handleSubmit} searchValue={searchValue}  />
+      <Header  searchValue={searchValue}  />
       {modal && (
         <LocEditTag place={modal.place} list={tagList} callbackFn={handleClickLocTagEnd} />
       )}
@@ -138,13 +147,19 @@ export default function Kmap() {
             <div className=" pb-2">
               <div className="badge badge-md badge-ghost"  onClick={()=> {document.getElementById('my_modal_1').showModal()}}>+ 새 리스트 만들기</div>
             </div>
+            {visibleTag && (
+                <div className=" pb-2">
+                <div className="badge badge-md badge-neutral cursor-pointer" onClick={() => {setVisibleTag(null)}} >전체 보기</div>
+              </div>
+            )}
+            
             <hr/>
             {tagList.map((value,index) => {
               return (
                 <div  key={index}>
                   <div className="bg-base-200 p-2 flex justify-between border-b-2 items-center">
                     <div className="font-semibold">
-                      <span >{value}</span><div className=" ml-2 badge badge-neutral">+1</div>
+                      <span onClick={() => {handleClickTag(value)}}>{value}</span><div className=" ml-2 badge badge-neutral">{locList.reduce((acc, item) => acc + (item.place.tag.includes(value) ? 1 : 0), 0)}</div>
                     </div>
                     <div>
                       <span className="text-sm btn btn-sm btn-ghost bg-base-300">편집</span>
@@ -154,30 +169,41 @@ export default function Kmap() {
               )
             })}
             
-            
           </div>
           <div className="p-2">
+            
+
             <div className="font-semibold">
-                전체 장소 {userLocList.length}
+              {visibleTag ? (<>#{visibleTag} </>) : (<>전체 장소 {userLocList.length}</>)}
+              
             </div>
             <hr/>
             <div className="w-full">
             {locList.map((value,index) => {
+                if (visibleTag && !value.place.tag.includes(visibleTag)) return null;
                 return (
+                  
                 <div key={index} className="py-2 border-b-2">
                     <div className="flex items-center cursor-pointer"  onClick={() => { handleClickPlace(value) }}>
-                        <span className="font-bold   whitespace-nowrap">{value.place.place_name}</span>
+                        <span className="font-bold   whitespace-nowrap">{value.place.place_name} </span>
                         <div className="pl-1 text-sm text-gray-700 overflow-hidden whitespace-nowrap text-ellipsis ">{value.place.address_name}</div>
                     </div>
                     <div className="flex justify-between">
                         <p className="text-sm text-gray-700 overflow-hidden whitespace-nowrap text-ellipsis w-56">{value.place.category_name}</p>
                         <div>
-                          <div className="badge badge-md bg-base-200" onClick={() => { handleClickLocTag(value.place) }}>+추가</div>
+                          <div className="badge badge-md badge-neutral " onClick={() => { handleClickLocTag(value.place) }}>+리스트</div>
                           <div className={`badge badge-md bg-red-400 text-white`} onClick={() => { handleClickHeart(value.place) }}>저장❤️</div>
                         </div>
-                        
                     </div>
-                    
+                    <div>
+                    {value.place.tag.map((value,index) => {
+                    return (
+                      <div className="badge badge-md badge-outline bg-base-100 mr-1" key={index}>#{value}</div>
+                    )
+                    })}
+                      
+                    </div>  
+
                 </div>
                 
                 )
