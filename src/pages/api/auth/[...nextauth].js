@@ -4,6 +4,7 @@ import { getDB } from '@/util/database'
 const db = await getDB();
 
 export default NextAuth({
+  secret: process.env.NEXTAUTH_SECRET, 
   providers: [
     KakaoProvider({
       clientId: process.env.KAKAO_CLIENT_ID,

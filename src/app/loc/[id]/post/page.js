@@ -52,11 +52,20 @@ export default function Page({ params }) {
   };
   const handleSubmit = async (e) => {
     e.preventDefault(); // 폼의 기본 동작인 전송을 막음
+    const files = fileInputRef.current.files;
     
+    if(files.length == 0) {
+      alert("사진을 올려주세요")
+      return
+    }
+    if(inputData.current.value.trim() == '') {
+      alert("글을 입력해주세요")
+      return
+    }
     const formData = new FormData();
 
     // 새로운 파일 폼데이터로 변경
-    const files = fileInputRef.current.files;
+    
     for (let i = 0; i < files.length; i++) {
       formData.append("image", files[i]);
     }

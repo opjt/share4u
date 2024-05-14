@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
         var result = await db.collection('loclist').findOne({id:id});
 
-        var posts = await db.collection('post').find({id:id}).toArray();
+        var posts = await db.collection('post').find({id:id}).sort({ createdAt: -1 }).toArray();
         
         res.status(200).json({place: result,post:posts})
     }

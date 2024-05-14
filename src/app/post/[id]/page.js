@@ -7,6 +7,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Axios from '@/util/axios';
 import{ useRouter } from "next/navigation";
+import Skeleton from '@/app/components/skeleton';
 
 export default function Page({ params }) {
   console.log(params)
@@ -55,19 +56,23 @@ export default function Page({ params }) {
     <>
       <Header />
 
-      <div class="flex items-center justify-center p-6">
+      <div className="flex items-center justify-center p-6">
         
-        <div class="mx-auto w-full max-w-[550px] bg-white">
+        <div className="mx-auto w-full max-w-[550px] bg-white">
 
         <div className='flex justify-between'>
           <div>
-            <p className="text-lg font-semibold">{locInfo?.place_name}</p>
-            <p className="text-sm text-gray-600">{locInfo?.address_name}</p>
+          
+          <p className="text-lg font-semibold">{locInfo?.place_name}</p>
+          <p className="text-sm text-gray-600">{locInfo?.address_name}</p>
+              
+            
+            
           </div>
-          <div className='btn btn-sm btn-neutral' onClick={() => (router.push(`/loc/${post?.id}`))}>이전</div>
+          <div className='btn btn-sm btn-neutral' onClick={() => (router.back())}>이전</div>
         </div>
 
-          <div class="py-6 px-9" >
+          <div className="py-6 px-9" >
          
            
 
@@ -76,17 +81,17 @@ export default function Page({ params }) {
                 {post?.images.map((value, index) => (
                   <div key={index} className="h-[478px] ">
                     {console.log(value)}
-                    <Image key={index} src={`/uploads/${value}`} alt={`Preview ${index}`}  className="h-full w-full object-scale-down" width="478" height="478"/>
+                    <Image key={index} src={`/uploads/${value}`} alt={`Preview ${index}`} onError={(e) => ( e.target.src = '/img/default.png')} className="h-full w-full object-scale-down" width="478" height="478"/>
     
                   </div>
                 ))}
               </Slider>
             </div>
-            <div class="mb-6 pt-4">
+            <div className="mb-6 pt-4">
         
 
 
-              <div class="mb-7">
+              <div className="mb-7">
                 <div className='flex items-center'> 
                   <div className='font-bold mr-1'>{user?.nickname}</div>
                   <div>{post?.content}</div>

@@ -49,13 +49,15 @@ export default function Kmap() {
   },[userLocList, kakao])
 
   
+  const callbackFN = (value) => {
+    console.log(value)
+    setSelectLoc(null)
+  }
+
   const setMarkers = (places) => {
   
       if(!kakao) return
-      const callbackFN = (value) => {
-        console.log(value)
-        setSelectLoc(null)
-      }
+      
       const bounds = new kakao.maps.LatLngBounds()
       let markers = []
       for (var i = 0; i < places.length; i++) {
@@ -70,6 +72,17 @@ export default function Kmap() {
       setLocList(markers)
       map.setBounds(bounds)
   }
+  const setMarkersbyTag = (tag) => {
+    const bounds = new kakao.maps.LatLngBounds()
+    locList.forEach(value => {
+       value.marker.setMap(null)
+        if (!tag || value.place.tag.includes(tag)) {
+            value.marker.setMap(map)
+            bounds.extend(value.marker.getPosition())
+        }
+    });
+    map.setBounds(bounds)
+  }
  
 
   const handleClickPlace = (value) => {
@@ -77,11 +90,9 @@ export default function Kmap() {
       for (var i = 0; i < locList.length; i++) {
           locList[i].overlay.setMap(null);
       }
-      
       map.panTo(value.marker.getPosition()); 
       value.overlay.setMap(map);
       setSelectLoc(value.place)
-
   }
   const handleClickLocTag = async (place) => {
     setModal({id: place.id, place:place})
@@ -132,7 +143,10 @@ export default function Kmap() {
     alert("리스트에 적용되었습니다")
     
   }
-  const handleClickTag = (tag) => {
+  const handleClickTag = async (tag) => {
+
+    // setMarkers(res.data.loc)
+    setMarkersbyTag(tag)
     setVisibleTag(tag)
   }
   
@@ -175,7 +189,7 @@ export default function Kmap() {
       {modal && (
         <LocEditTag place={modal.place} list={tagList} callbackFn={handleClickLocTagEnd} />
       )}
-      {selectLoc && (
+      {/* {selectLoc && (
         <>
           <div className='absolute z-50 m-2'>
             <div className="card w-96 bg-base-100 shadow-xl">
@@ -189,7 +203,7 @@ export default function Kmap() {
             </div>
           </div>
         </>
-      )}
+      )} */}
       
       <hr/>
       <div className="flex ">
@@ -204,7 +218,7 @@ export default function Kmap() {
               <div className="badge badge-md badge-ghost"  onClick={()=> {document.getElementById('my_modal_1').showModal()}}>+ 새 리스트 만들기</div>
             </div>
             <div className={`${visibleTag ? '' : 'hidden'} pb-2 `}>
-            <div className="badge badge-md badge-neutral cursor-pointer" onClick={() => {setVisibleTag(null)}}>전체 보기</div>
+            <div className="badge badge-md badge-neutral cursor-pointer" onClick={() => {setVisibleTag(null); setMarkersbyTag()}}>전체 보기</div>
           </div>
             
             <hr/>

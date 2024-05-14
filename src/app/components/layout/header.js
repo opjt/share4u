@@ -1,16 +1,25 @@
 import Image from 'next/image'
+import { useRouter } from 'next/navigation';
 import { signIn, signOut, useSession } from "next-auth/react"
 import useCustomLogin from '@/app/hooks/useCustomLogin'
 import { useEffect, useRef, useState } from "react";
 import Link from 'next/link';
 import Axios from '@/util/axios';
 
-export default function Header({ handleSubmit, searchValue }) {
+export default function Header({ handleSubmit = null , searchValue = null}) {
+    
+    const searchRef = useRef()
+    const router = useRouter();  
     const nickRef = useRef()
     const [checkNick, setChecknick] = useState(false)
 
     const { isLogin, getUser,doLogin,doUpdate } = useCustomLogin();
+    const searchInput = searchValue || searchRef;
 
+    const defaultSubmit = (e) => {
+        e.preventDefault();
+        router.push(`/?search=${searchInput.current.value}`)
+    }
     const handleClickModify = async (e) => {
         e.preventDefault(); // 폼의 기본 동작인 전송을 막음
         if(!checkNick) {
@@ -52,14 +61,15 @@ export default function Header({ handleSubmit, searchValue }) {
                 {isLogin && (
                     <div className='flex gap-2 mr-2 font-medium'>
                         <Link href="/my/loc" className='btn btn-sm'>내 장소</Link>
-                        <h1 className='btn btn-sm' >내 리스트</h1>
+                        <Link href="/my/post" className='btn btn-sm'>내 추억</Link>
+                        
                     </div>
                 )}
 
                 <div className="form-control relative">
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit || defaultSubmit}>
                         <svg xmlns="http://www.w3.org/2000/svg" className="absolute top-2 right-2" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#7b7b7b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        <input type="text" placeholder="장소 검색" ref={searchValue} className="input input-bordered w-24 md:w-auto h-10" />
+                        <input type="text" placeholder="장소 검색" ref={searchInput} className="input input-bordered w-24 md:w-auto h-10" />
                     </form>
                 </div>
                 {isLogin ? (
@@ -71,7 +81,7 @@ export default function Header({ handleSubmit, searchValue }) {
 
                         </div>
                         <ul tabIndex={0} className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
-                            <li><a onClick={()=> {document.getElementById('my_modal_1').showModal(); setChecknick(false); nickRef.current.value=""}}>내 정보</a></li>
+                            <li><a onClick={()=> {document.getElementById('modal_header').showModal(); setChecknick(false); nickRef.current.value=""}}>내 정보</a></li>
                             <li><a onClick={() => signOut()}>Logout</a></li>
                         </ul>
                     </div>
@@ -84,7 +94,7 @@ export default function Header({ handleSubmit, searchValue }) {
 
             </div>
 
-            <dialog id="my_modal_1" className="modal">
+            <dialog id="modal_header" className="modal">
                 <div className="modal-box max-w-[600px]">
                     <h3 className="font-bold  mb-2">내 정보</h3>
                     

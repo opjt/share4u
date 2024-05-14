@@ -12,7 +12,6 @@ export default function Page({ params }) {
   console.log(params)
 
   const [selectedImages, setSelectedImages] = useState([]);
-  const [locInfo, setLocInfo] = useState(null)
   const [posts, setPosts] = useState(null)
   const fileInputRef = useRef();
   const inputData = useRef();
@@ -20,9 +19,8 @@ export default function Page({ params }) {
 
   useEffect(() => {
     (async function () {
-      const res = await Axios.get(`/api/v1/loc/${params.id}`)
+      const res = await Axios.get(`/api/v1/user/post`)
       console.log(res.data)
-      setLocInfo(res.data.place)
       setPosts(res.data.post)
 
 
@@ -45,30 +43,6 @@ export default function Page({ params }) {
   };
 
 
-
-  const handleImageChange = (event) => {
-    const files = event.target.files;
-    const newImageUrls = Array.from(files).map(file => URL.createObjectURL(file));
-    setSelectedImages(newImageUrls);
-    // setSelectedImages(prevImages => [...prevImages, ...newImageUrls]);
-  };
-  const handleSubmit = async (e) => {
-    e.preventDefault(); // 폼의 기본 동작인 전송을 막음
-
-    const formData = new FormData();
-
-    // 새로운 파일 폼데이터로 변경
-    const files = fileInputRef.current.files;
-    for (let i = 0; i < files.length; i++) {
-      formData.append("image", files[i]);
-    }
-
-    // 구장정보 폼데이터로 변경
-    formData.append("content", inputData.current.value);
-
-    const header = { headers: { "Content-Type": "multipart/form-data" } }
-    var res = await Axios.post(`/api/v1/post/${locInfo.id}`, formData, header)
-  }
   const handleClickPost = async (value) => {
     router.push(`/post/${value}`)
   }
@@ -82,10 +56,10 @@ export default function Page({ params }) {
 
           <div className='flex justify-between'>
             <div>
-              <p className="text-lg font-semibold">{locInfo?.place_name}</p>
-              <p className="text-sm text-gray-600">{locInfo?.address_name}</p>
+              <p className="text-lg font-semibold">내 추억</p>
+              {/* <p className="text-sm text-gray-600">{locInfo?.address_name}</p> */}
             </div>
-            <div className='btn btn-sm btn-neutral' onClick={() => (router.push(`/loc/${params.id}/post`))}>글쓰기</div>
+            {/* <div className='btn btn-sm btn-neutral' onClick={() => (router.push(`/loc/${params.id}/post`))}>글쓰기</div> */}
           </div>
 
           {posts?.length == 0 && (

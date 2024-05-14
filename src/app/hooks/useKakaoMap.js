@@ -8,7 +8,7 @@ const useKakaoMap = (mapContainer) => {
     const [services, setServices] = useState(null)
 
     
-    const putMarker = (position, data, callbackFn) => {
+    const putMarker = (position, data, callbackFn,clickEvent) => {
         var imageSrc = '/img/marker.png', // 마커이미지의 주소입니다   342 512  171 256  85 128
         imageSize = new kakao.maps.Size(25, 37), // 마커이미지의 크기입니다
         imageOption = {offset: new kakao.maps.Point(12, 40)}; // 마커이미지의 옵션입니다. 마커의 좌표와 일치시킬 이미지 안에서의 좌표를 설정합니다.
@@ -68,7 +68,7 @@ const useKakaoMap = (mapContainer) => {
         // });
  
         window.kakao.maps.event.addListener(marker, 'click', function () {
-
+                
             overlay.setMap(map);
         });
         return {marker:marker, overlay: overlay}
