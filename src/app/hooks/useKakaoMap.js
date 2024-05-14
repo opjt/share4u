@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-
+import Link from 'next/link';
 
 
 const useKakaoMap = (mapContainer) => {
@@ -8,7 +8,7 @@ const useKakaoMap = (mapContainer) => {
     const [services, setServices] = useState(null)
 
     
-    const putMarker = (position, data) => {
+    const putMarker = (position, data, callbackFn) => {
         var imageSrc = '/img/marker.png', // 마커이미지의 주소입니다   342 512  171 256  85 128
         imageSize = new kakao.maps.Size(25, 37), // 마커이미지의 크기입니다
         imageOption = {offset: new kakao.maps.Point(12, 40)}; // 마커이미지의 옵션입니다. 마커의 좌표와 일치시킬 이미지 안에서의 좌표를 설정합니다.
@@ -42,7 +42,7 @@ const useKakaoMap = (mapContainer) => {
                   </div>
                   
                   
-                  <p >comment,,</p>
+                  <Link className="btn btn-ghost text-lg" href="/">공유해유</Link>
                 </div>
               </div>
                   
@@ -54,6 +54,7 @@ const useKakaoMap = (mapContainer) => {
         const closeBtn = tempDiv.querySelector('.close');
         closeBtn.addEventListener('click', () => { //닫기 이벤트 추가
             overlay.setMap(null);
+            callbackFn(data)
         });    
         overlay.setContent(tempDiv)
         // 마커에 mouseover 이벤트를 등록하고 마우스 오버 시 인포윈도우를 표시합니다 

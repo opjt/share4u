@@ -11,8 +11,14 @@ export default async function handler(req, res) {
     //     res.status(401).json({ error: '계정을 찾을 수 없습니다' });
     // }
     if(req.method === 'GET') {
-        const result = await db.collection('user').countDocuments({loclist: {$elemMatch: {$eq: id }}});
-        res.status(200).json(result)
+        // const result = await db.collection('user').countDocuments({loclist: {$elemMatch: {$eq: id }}});
+        // res.status(200).json(result)
+
+        var result = await db.collection('loclist').findOne({id:id});
+
+        var posts = await db.collection('post').find({id:id}).toArray();
+        
+        res.status(200).json({place: result,post:posts})
     }
     if(req.method==='PATCH') {
         var result = await db.collection('user').updateOne(

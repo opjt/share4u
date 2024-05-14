@@ -8,6 +8,7 @@ import Axios from "@/util/axios";
 import useKakaoMap from "@/app/hooks/useKakaoMap";
 import useCustomLogin from '@/app/hooks/useCustomLogin'
 import LocEditTag from '@/app/components/modal/locEditTag'
+import Link from 'next/link';
 
 
 export default function Kmap() {
@@ -15,10 +16,11 @@ export default function Kmap() {
   const searchValue = useRef();
   const addListInputValue = useRef()
 
-  const [locList, setLocList] = useState([]);
-  const [tagList, setTagList] = useState([]);
-  const [userLocList, setUserLocList] = useState([])
+  const [locList, setLocList] = useState([]); //찜 목록
+  const [tagList, setTagList] = useState([]); //유저 리스트 목록
+  const [userLocList, setUserLocList] = useState([]) //유저 찜목록 id배열
   const [modal, setModal] = useState(null)
+  const [selectLoc, setSelectLoc] = useState(null)
   const { isLogin,getUser } = useCustomLogin();
 
   const [container, setContainer ] = useState(null)
@@ -45,17 +47,22 @@ export default function Kmap() {
           // setLocList(res.data.loc)
       })();
   },[userLocList, kakao])
+
+  
   const setMarkers = (places) => {
   
       if(!kakao) return
-
+      const callbackFN = (value) => {
+        console.log(value)
+        setSelectLoc(null)
+      }
       const bounds = new kakao.maps.LatLngBounds()
       let markers = []
       for (var i = 0; i < places.length; i++) {
 
           var position = new kakao.maps.LatLng(places[i].y, places[i].x)
       
-          var {marker, overlay} = putMarker(position, places[i])
+          var {marker, overlay} = putMarker(position, places[i],callbackFN)
           bounds.extend(new kakao.maps.LatLng(places[i].y, places[i].x))
           markers.push({place: places[i], marker: marker, overlay:overlay})
       }
@@ -73,6 +80,7 @@ export default function Kmap() {
       
       map.panTo(value.marker.getPosition()); 
       value.overlay.setMap(map);
+      setSelectLoc(value.place)
 
   }
   const handleClickLocTag = async (place) => {
@@ -166,6 +174,21 @@ export default function Kmap() {
       <Header  searchValue={searchValue} handleSubmit={handleSubmit}  />
       {modal && (
         <LocEditTag place={modal.place} list={tagList} callbackFn={handleClickLocTagEnd} />
+      )}
+      {selectLoc && (
+        <>
+          <div className='absolute z-50 m-2'>
+            <div className="card w-96 bg-base-100 shadow-xl">
+              <div className="card-body">
+                <h2 className="card-title">{selectLoc.place_name}</h2>
+                <p>If a dog chews shoes whose shoes does he choose?</p>
+                <div className="card-actions justify-end">
+                  <Link href={`/loc/${selectLoc.id}/post`} className="btn btn-primary">추억 담기</Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
       )}
       
       <hr/>
