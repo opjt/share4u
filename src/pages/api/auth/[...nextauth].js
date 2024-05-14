@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth'
 import KakaoProvider from 'next-auth/providers/kakao'
 import { getDB } from '@/util/database'
+const db = await getDB();
 
 export default NextAuth({
   providers: [
@@ -14,11 +15,12 @@ export default NextAuth({
   // },
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
-      const db = await getDB();
+      
       let result = await db.collection('user').findOne({email:user.email});
       if(result == null) {
           var userValue = {
             email: user.email,
+            nickname: user.email,
             loclist: []
         };
         var insert = await db.collection('user').insertOne(userValue);
@@ -37,6 +39,8 @@ export default NextAuth({
       session.accessToken = token.accessToken // 전달받은 token 객체에서 토큰 값을 다시 session 객체에 담고
       session.user.id = token.id
       session.token = token
+      let result = await db.collection('user').findOne({email:session.user.email});
+      session.user.nickname = result.nickname
       return session // 반환해주면, client에서 접근 가능하다. 
     }
   }

@@ -14,6 +14,7 @@ export default function Page({ params }) {
   const [selectedImages, setSelectedImages] = useState([]);
   const [locInfo, setLocInfo] = useState(null)
   const [post, setPost] = useState(null)
+  const [user, setUser] = useState(null)
   const fileInputRef = useRef();
   const inputData = useRef();
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function Page({ params }) {
     (async function () {
       const res = await Axios.get(`/api/v1/post/${params.id}`)
       setPost(res.data.post)
+      setUser(res.data.user)
 
       const loc = await Axios.get(`/api/v1/loc/${res.data.post.id}`)
       setLocInfo(loc.data.place)
@@ -85,7 +87,11 @@ export default function Page({ params }) {
 
 
               <div class="mb-7">
-                <div>{post?.content}</div>
+                <div className='flex items-center'> 
+                  <div className='font-bold mr-1'>{user?.nickname}</div>
+                  <div>{post?.content}</div>
+                </div>
+                
               </div>
 
            

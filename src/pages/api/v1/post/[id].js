@@ -33,8 +33,8 @@ export default async function handler(req, res) {
     
     var post = await db.collection('post').findOne({_id:new ObjectId(id)});
     console.log(post)
-    
-    res.status(200).json({post:post})
+    var user = await db.collection('user').findOne({email:post.email});
+    res.status(200).json({post:post, user:user})
   }
   if(req.method === 'POST') {
     try {

@@ -96,6 +96,10 @@ export default function Page({ params }) {
               return (
                 <div className='w-full pb-[100%] bg-red-400 relative ' key={index} onClick={() => handleClickPost(value._id)}>
                   <Image className="absolute object-cover h-full" src={`/uploads/${value.images[0]}`} alt="" fill/>
+                  {value.images.length > 1 && (
+                    <div className='absolute right-0 font-semibold p-1'><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg></div>
+                  )}
+                  
                   <div className='absolute opacity-0 hover:opacity-100 w-full h-full flex justify-center items-center'>
                     <div className='text-white absolute z-50'>♥</div>
 
