@@ -14,7 +14,7 @@ export default function Kmap() {
   const router = useRouter();  
   // const [container, setContainer ] = useState(null)
   const [container, setContainer ] = useState(null)
-  const {map, putMarker, kakao} = useKakaoMap(container)
+  const {map, putMarker, kakao,customOverlay} = useKakaoMap(container)
   
   const searchValue = useRef();
 
@@ -42,9 +42,7 @@ export default function Kmap() {
      
     },[kakao])
 
-    const ClickTest= () => {
-      console.log("tq")
-    }
+  
 
     const handleClickSearch = (search) => {
         var searchText = searchValue.current.value
@@ -92,13 +90,15 @@ export default function Kmap() {
         handleClickSearch(); // 검색 함수 호출
     }
 
-    const handleClickPlace = (value) => {
-        console.log(value.marker)
+    const handleClickPlace = async (value) => {
+        console.log(value)
         for (var i = 0; i < locList.length; i++) {
             locList[i].overlay.setMap(null);
         }
         
         map.panTo(value.marker.getPosition()); 
+        var cont = await customOverlay(value.place, value.overlay)
+        value.overlay.setContent(cont)
         value.overlay.setMap(map);
 
     }

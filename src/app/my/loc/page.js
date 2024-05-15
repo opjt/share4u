@@ -24,7 +24,7 @@ export default function Kmap() {
   const { isLogin,getUser } = useCustomLogin();
 
   const [container, setContainer ] = useState(null)
-  const {map, putMarker, kakao} = useKakaoMap(container)
+  const {map, putMarker, kakao,customOverlay} = useKakaoMap(container)
 
   const [visibleTag, setVisibleTag] = useState(null);
   
@@ -48,10 +48,20 @@ export default function Kmap() {
       })();
   },[userLocList, kakao])
 
-  
+
   const callbackFN = (value) => {
     console.log(value)
     setSelectLoc(null)
+  }
+  const showOverlay = async (data) => {
+    
+    const res = await Axios.get(`/api/v1/loc/${data.id}`)
+    data.heartCount = res.data.count
+    data.postCount = res.data.post.length
+
+    var overlay = customOverlay(data)
+    overlay.setPosition( new kakao.maps.LatLng(data.y, data.x))
+    overlay.setMap(map)
   }
 
   const setMarkers = (places) => {
@@ -64,7 +74,7 @@ export default function Kmap() {
 
           var position = new kakao.maps.LatLng(places[i].y, places[i].x)
       
-          var {marker, overlay} = putMarker(position, places[i],callbackFN)
+          var {marker, overlay} = putMarker(position, places[i],showOverlay)
           bounds.extend(new kakao.maps.LatLng(places[i].y, places[i].x))
           markers.push({place: places[i], marker: marker, overlay:overlay})
       }
@@ -72,7 +82,7 @@ export default function Kmap() {
       setLocList(markers)
       map.setBounds(bounds)
   }
-  const setMarkersbyTag = (tag) => {
+  const setMarkersbyTag = (tag) => { //태그 선택하면 태그기반으로 마커 보이게
     const bounds = new kakao.maps.LatLngBounds()
     locList.forEach(value => {
        value.marker.setMap(null)
@@ -85,12 +95,14 @@ export default function Kmap() {
   }
  
 
-  const handleClickPlace = (value) => {
+  const handleClickPlace = async (value) => { //유저가 장소 클릭시
       console.log(value.marker)
       for (var i = 0; i < locList.length; i++) {
           locList[i].overlay.setMap(null);
       }
       map.panTo(value.marker.getPosition()); 
+      var cont = await customOverlay(value.place, value.overlay)
+        value.overlay.setContent(cont)
       value.overlay.setMap(map);
       setSelectLoc(value.place)
   }
