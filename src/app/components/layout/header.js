@@ -18,7 +18,7 @@ export default function Header({ handleSubmit = null , searchValue = null}) {
 
     const defaultSubmit = (e) => {
         e.preventDefault();
-        router.push(`/?search=${searchInput.current.value}`)
+        router.push(`/search/?loc=${searchInput.current.value}`)
     }
     const handleClickModify = async (e) => {
         e.preventDefault(); // 폼의 기본 동작인 전송을 막음

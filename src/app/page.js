@@ -8,6 +8,9 @@ import Axios from "@/util/axios";
 import useKakaoMap from "@/app/hooks/useKakaoMap";
 import useCustomLogin from '@/app/hooks/useCustomLogin'
 import { useSearchParams } from 'next/navigation'
+import axios from 'axios';
+import Image from 'next/image';
+import moment from 'moment';
 
 
 export default function Kmap() {
@@ -18,88 +21,73 @@ export default function Kmap() {
   
   const searchValue = useRef();
 
-  
+  const [locValue, setLocValue] = useState([])
   const [locList, setLocList] = useState([]);
   const [userLocList, setUserLocList] = useState([])
   const { isLogin,getUser } = useCustomLogin();
 
-  const searchParams = useSearchParams() //query스트링 
-  const search = searchParams.get('search')
+  const [post,setPost] = useState([])
+
     useEffect(() => {
-      if(isLogin) {
-        (async function () {
-          const res = await Axios.get(`/api/v1/loc`)
-          setUserLocList(res.data.list)
+      (async function () {
+        const res = await axios.get(`/api/v1/loc`)
+        setLocValue(res.data)
+        
       })();
-      }
-    },[isLogin])
+    },[])
     useEffect(() => {
       if(!kakao) return
-      if(!search) return
-        console.log(search)
-        console.log(kakao)
-        handleClickSearch(search)
-     
-    },[kakao])
-
-  
-
-    const handleClickSearch = (search) => {
-        var searchText = searchValue.current.value
-        if(search) {
-          searchText = search
-        }
-        router.push(`?search=${searchText}`);
-        // 마커 초기화
-        for (var i = 0; i < locList.length; i++) {
-            locList[i].marker.setMap(null);
-        }
-        setLocList([])
-        var ps = new kakao.maps.services.Places();
-        ps.keywordSearch(searchText, (data, status, _pagination) => {
-          if (status === kakao.maps.services.Status.OK) {
-            // 검색된 장소 위치를 기준으로 지도 범위를 재설정하기위해
-            // LatLngBounds 객체에 좌표를 추가합니다
-            const bounds = new kakao.maps.LatLngBounds()
-            let markers = []
-            console.log(data);
-            for (var i = 0; i < data.length; i++) {
-   
-              var position = new kakao.maps.LatLng(data[i].y, data[i].x)
-              
-              var {marker, overlay} = putMarker(position, data[i])
-              bounds.extend(new kakao.maps.LatLng(data[i].y, data[i].x))
-              markers.push({place: data[i], marker: marker, overlay:overlay})
-            }
+      (async function () {
+        const res = await axios.get(`/api/v1/post`)
+        console.log(res.data.post)
+        setPost(res.data.post)
         
-            setLocList(markers)
-    
-            // 검색된 장소 위치를 기준으로 지도 범위를 재설정합니다
-            map.setBounds(bounds)
-          }  else if (status === kakao.maps.services.Status.ZERO_RESULT) {
-            alert('검색 결과가 존재하지 않습니다.');
-            return;
-        } else if (status === kakao.maps.services.Status.ERROR) {
-            alert('검색 결과 중 오류가 발생했습니다.');
-            return;
-        }
-        })
-    }
-    const handleSubmit = (event) => {
-        event.preventDefault(); // 폼의 기본 동작인 전송을 막음
-        handleClickSearch(); // 검색 함수 호출
-    }
+        // setMarkers()
+        
+      })();
+      
+        
+     
+    },[kakao, locValue])
 
+    const setMarkers = () => {
+  
+      for (var i = 0; i < locList.length; i++) {
+          locList[i].marker.setMap(null);
+      }
+      setLocList([])
+      const bounds = new kakao.maps.LatLngBounds()
+      let markers = []
+
+      Object.keys(locValue).forEach(key => {
+        var data = locValue[key];
+        var position = new kakao.maps.LatLng(data.y, data.x)
+        
+        var {marker, overlay} = putMarker(position, data)
+        bounds.extend(new kakao.maps.LatLng(data.y, data.x))
+        markers.push({place: data, marker: marker, overlay:overlay})
+      });
+  
+      setLocList(markers)
+
+      // 검색된 장소 위치를 기준으로 지도 범위를 재설정합니다
+      map.setBounds(bounds)
+      
+  }
     const handleClickPlace = async (value) => {
         console.log(value)
         for (var i = 0; i < locList.length; i++) {
             locList[i].overlay.setMap(null);
         }
-        
-        map.panTo(value.marker.getPosition()); 
-        var cont = await customOverlay(value.place, value.overlay)
-        value.overlay.setContent(cont)
-        value.overlay.setMap(map);
+        let markers = []
+
+        var position = new kakao.maps.LatLng(value.y, value.x)
+        var {marker, overlay} = putMarker(position, value)
+        markers.push({place: value, marker:marker, overlay:overlay})
+        var cont = await customOverlay(value, overlay)
+        overlay.setContent(cont)
+        overlay.setMap(map);
+        setLocList(markers)
 
     }
   
@@ -120,7 +108,7 @@ export default function Kmap() {
   return (
 
     <>
-      <Header handleSubmit={handleSubmit} searchValue={searchValue} />
+      <Header  />
       <hr/>
       <div className="flex ">
       <div style={{ width: 'calc(100vw - 400px)', height: 'calc(100vh - 66px)' }} ref={setContainer} ></div>
@@ -128,10 +116,49 @@ export default function Kmap() {
         <div className="flex-1 overflow-auto" style={{ height: "calc(100vh - 66px)" }}>
 
           <ul className="">
-            {locList.length == 0 && (
+            {/* {locList.length == 0 && (
               <p className='text-lg font-bold text-center mt-5'>검색하여 서비스를 시작해보세요</p>
-            )}
-            {locList.map((value, index) => {
+            )} */}
+            {post.map((value, index) => {
+              return (
+                <li key={index} className="p-2  gap-3 py-3 border-b-2" >
+                  <div className="flex items-center mb-2 gap-1">
+                      <h2 className="font-bold text-lg cursor-pointer inline-block" onClick={() => { handleClickPlace(locValue[value.id]) }}>{locValue[value.id]?.place_name}</h2>
+                      <p className="inline-block text-sm text-gray-700 overflow-hidden whitespace-nowrap text-ellipsis w-64">{locValue[value.id]?.address_name}</p>
+                  </div>
+                  <div className='flex'>
+                    <div className="w-24 h-24">
+                      <div className='w-full pb-[100%] bg-red-400 relative '>
+                          <Image className="absolute object-cover h-full" src={`/uploads/${value?.images[0]}`} alt="" fill />
+                          {value.images.length > 1 && (
+                            <div className='absolute right-0 font-semibold p-1 '><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /></svg></div>
+                          )}
+
+                          <div className='absolute opacity-0 hover:opacity-100 w-full h-full flex justify-center items-center'>
+                            <div className='text-white absolute z-50'>♥</div>
+
+                            <div className='bg-black opacity-15 w-full h-full'></div>
+
+                          </div>
+
+
+                        </div>
+                    </div>
+                    <div className='flex-grow'>
+                      <div className='text-end text-sm'>{moment(value?.createdAt).format('YYYY-MM-DD')}</div>  
+                      <div className='flex items-center p-2'> 
+                        
+                        <div className='font-bold mr-1'>{value?.nickname}</div>
+                        <div className='overflow-hidden whitespace-nowrap text-ellipsis w-56'>{value?.content}</div>
+                      </div>
+                    </div>
+                    
+                  </div>
+                </li>
+              );
+            })}
+            
+            {/* {locList.map((value, index) => {
               return (
                 <li key={index} className="p-2 flex gap-3 py-3 border-b-2" >
                   <div className="skeleton w-24 h-24"></div>
@@ -143,7 +170,7 @@ export default function Kmap() {
                   </div>
                 </li>
               );
-            })}
+            })} */}
           </ul>
 
         </div>

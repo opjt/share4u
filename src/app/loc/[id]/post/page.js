@@ -6,7 +6,7 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Axios from '@/util/axios';
-import{ useRouter } from "next/navigation";
+import{ useRouter, useSearchParams } from "next/navigation";
 
 export default function Page({ params }) {
   console.log(params)
@@ -14,6 +14,7 @@ export default function Page({ params }) {
   const [selectedImages, setSelectedImages] = useState([]);
   const [locInfo, setLocInfo] = useState(null)
   const fileInputRef = useRef();
+  const searchParams = useSearchParams() //query스트링 
   const inputData = useRef();
   const router = useRouter();
 
@@ -21,7 +22,12 @@ export default function Page({ params }) {
     (async function () {
       const res = await Axios.get(`/api/v1/loc/${params.id}`)
       console.log(res.data)
+      
       setLocInfo(res.data.place)
+      if(res.data.place ==null ) {
+        var location_info = {place_name: searchParams.get('place_name'),address_name:searchParams.get('address_name')}
+        setLocInfo(location_info)
+      }
  
 
     })();
@@ -95,7 +101,7 @@ export default function Page({ params }) {
             <p className="text-lg font-semibold">{locInfo?.place_name}</p>
             <p className="text-sm text-gray-600">{locInfo?.address_name}</p>
           </div>
-          <div className='btn btn-sm btn-neutral' onClick={() => (router.push(`/loc/${params.id}`))}>이전</div>
+          <div className='btn btn-sm btn-neutral' onClick={() => (router.back())}>이전</div>
         </div>
 
           <form class="py-6 px-9" onSubmit={handleSubmit}>

@@ -1,3 +1,4 @@
+import Axios from "@/util/axios"
 import { useSession } from "next-auth/react"
 import { signIn, signOut } from "next-auth/react"
 
@@ -18,10 +19,14 @@ const useCustomLogin = () => {
     const doUpdate = (value) => {
         update({nickname:value})
     }
+    const getUserLoc = async () => {
+        const res = await Axios.get(`/api/v1/loc`)
+        return res.data.list
+    }
 
   
     return {
-        isLogin,getUser, doLogin,doUpdate
+        isLogin,getUser, doLogin,doUpdate,getUserLoc
     }
 }
 

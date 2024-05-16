@@ -13,8 +13,8 @@ export default async function handler(req, res) {
     if(req.method === 'GET') {
         // const count = await db.collection('user').countDocuments({loclist: {$elemMatch: {$eq: id }}});
         const count = await db.collection('user').countDocuments({'loclist.id': id});
-        console.log(count)
-        console.log(req.query)
+        // console.log(count)
+        // console.log(req.query)
         var result = await db.collection('loclist').findOne({id:id});
         if(req.query.limit == null) {
             var posts = await db.collection('post').find({id:id}).sort({ createdAt: -1 }).toArray();

@@ -2,11 +2,9 @@
 import Image from 'next/image'
 import { useRef, useState, useEffect } from 'react';
 import Header from "@/app/components/layout/header";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import Axios from '@/util/axios';
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import useCustomLogin from '@/app/hooks/useCustomLogin';
 
 export default function Page({ params }) {
   console.log(params)
@@ -14,6 +12,9 @@ export default function Page({ params }) {
   const [selectedImages, setSelectedImages] = useState([]);
   const [locInfo, setLocInfo] = useState(null)
   const [posts, setPosts] = useState(null)
+  const [userLocList, setUserLocList] = useState([])
+  const { getUserLoc } = useCustomLogin();
+  const searchParams = useSearchParams() //query스트링 
   const fileInputRef = useRef();
   const inputData = useRef();
   const router = useRouter();
@@ -22,56 +23,23 @@ export default function Page({ params }) {
     (async function () {
       const res = await Axios.get(`/api/v1/loc/${params.id}`)
       console.log(res.data)
+      res.data.place.heart = res.data.count 
       setLocInfo(res.data.place)
+      if(res.data.place ==null ) {
+        var location_info = {place_name: searchParams.get('place_name'),address_name:searchParams.get('address_name')}
+        setLocInfo(location_info)
+      }
       setPosts(res.data.post)
+      setUserLocList(await getUserLoc()) //하트 표시하려고 한거
 
 
     })();
   }, [])
-  const sliderSettings = {
-    dots: true, // 이미지 개수 표출 점
-    infinite: selectedImages && selectedImages.length > 1 ? true : false, // 마지막 이미지 이후 첫 이미지로 자동 루프 여부
-    slidesToShow: 1, // 한번에 보여지는 슬라이드 수
-    slidesToScroll: 1, // 한번에 넘어가는 슬라이드 수
-    autoplay: false, // 자동 슬라이드 여부
-    autoplaySpeed: 3000, // 자동으로 넘어가는 시간 간격
-    arrows: false, // 좌,우 버튼
-    pauseOnHover: true, // hover시 정지
-    appendDots: (dots) => (
-      <div>
-        <ul style={{ margin: "0px" }}> {dots} </ul>
-      </div>
-    ),
-  };
 
-
-
-  const handleImageChange = (event) => {
-    const files = event.target.files;
-    const newImageUrls = Array.from(files).map(file => URL.createObjectURL(file));
-    setSelectedImages(newImageUrls);
-    // setSelectedImages(prevImages => [...prevImages, ...newImageUrls]);
-  };
-  const handleSubmit = async (e) => {
-    e.preventDefault(); // 폼의 기본 동작인 전송을 막음
-
-    const formData = new FormData();
-
-    // 새로운 파일 폼데이터로 변경
-    const files = fileInputRef.current.files;
-    for (let i = 0; i < files.length; i++) {
-      formData.append("image", files[i]);
-    }
-
-    // 구장정보 폼데이터로 변경
-    formData.append("content", inputData.current.value);
-
-    const header = { headers: { "Content-Type": "multipart/form-data" } }
-    var res = await Axios.post(`/api/v1/post/${locInfo.id}`, formData, header)
-  }
   const handleClickPost = async (value) => {
     router.push(`/post/${value}`)
   }
+
   return (
     <>
       <Header />
@@ -85,9 +53,9 @@ export default function Page({ params }) {
               <p className="text-lg font-semibold">{locInfo?.place_name}</p>
               <p className="text-sm text-gray-600">{locInfo?.address_name}</p>
             </div>
-            <div className='btn btn-sm btn-neutral' onClick={() => (router.push(`/loc/${params.id}/post`))}>글쓰기</div>
+            <div className='btn btn-sm btn-neutral' onClick={() => (router.push(`/loc/${params.id}/post?place_name=${locInfo?.place_name}&address_name=${locInfo?.address_name}`))}>글쓰기</div>
           </div>
-
+          {/* <div className="text-right"><div className={`badge badge-md ${userLocList?.includes(params.id) ? 'bg-red-400 text-white' : 'border-red-400 text-red-400'}`} onClick={() => { handleClickHeart(locInfo) }}>저장 {locInfo?.heart}❤️</div></div> */}
           {posts?.length == 0 && (
             <div role="alert" className="alert mt-6 p-6">
             

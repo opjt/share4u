@@ -43,6 +43,8 @@ export default function Kmap() {
   useEffect(() => {
       (async function () {
           const res = await Axios.get(`/api/v1/loc`)
+          
+          
           setMarkers(res.data.loc)
           // setLocList(res.data.loc)
       })();
@@ -67,7 +69,10 @@ export default function Kmap() {
   const setMarkers = (places) => {
   
       if(!kakao) return
-      
+      if(places.length == 0) {
+        setLocList([])
+        return
+      }
       const bounds = new kakao.maps.LatLngBounds()
       let markers = []
       for (var i = 0; i < places.length; i++) {
@@ -132,6 +137,8 @@ export default function Kmap() {
   }
   const handleClickHeart = async (place) => {
       // console.log(place)
+      if(!confirm("내 장소에서 삭제하시겠습니까?")) return 
+      
       try {
           delete place._id
           const res = await Axios.post(`/api/v1/loc/${place.id}`, place)
@@ -189,15 +196,12 @@ export default function Kmap() {
       alert(response.data.error)
     }
   }
-  const handleSubmit = (e) => {
-    e.preventDefault(); // 폼의 기본 동작인 전송을 막음
-    router.push(`/?search=${searchValue.current.value}`)
-  }
+
 
   return (
 
     <>
-      <Header  searchValue={searchValue} handleSubmit={handleSubmit}  />
+      <Header   />
       {modal && (
         <LocEditTag place={modal.place} list={tagList} callbackFn={handleClickLocTagEnd} />
       )}
@@ -234,6 +238,7 @@ export default function Kmap() {
           </div>
             
             <hr/>
+            
             {tagList.length > 0 && tagList.map((value,index) => {
               return (
                 <div  key={index}>
@@ -281,6 +286,9 @@ export default function Kmap() {
             </div>
             <hr/>
             <div className="w-full">
+              {locList.length == 0 && (
+                <p className='text-lg font-bold text-center p-2'>저장한 장소가 없습니다</p>
+              )}
             {locList.map((value,index) => {
                 if (visibleTag && !value.place.tag.includes(visibleTag)) return null;
                 return (

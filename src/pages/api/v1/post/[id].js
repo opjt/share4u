@@ -53,13 +53,14 @@ export default async function handler(req, res) {
         
         // 파일 업로드 성공
         const filePaths = req.files.map(file => file.filename);
-        
+        var user = await db.collection('user').findOne({email:user_email});
         const newDocument = {
           content: content,
           email: user_email,
           id:id,
           images: filePaths,
           createdAt: moment().toISOString(),
+          nickname: user.nickname
         };
     
         await db.collection('post').insertOne(newDocument);

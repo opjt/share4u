@@ -85,8 +85,9 @@ const useKakaoMap = (mapContainer) => {
             overlay.setMap(null);
         });   
         const clickBtn = tempDiv.querySelector('.showdetail');
-        clickBtn.addEventListener('click', () => { //닫기 이벤트 추가
-            router.push(`/loc/${data.id}`)
+        clickBtn.addEventListener('click', () => { 
+
+            router.push(`/loc/${data.id}?place_name=${data.place_name}&address_name=${data.address_name}`)
         });     
         return tempDiv
     }
@@ -132,6 +133,7 @@ const useKakaoMap = (mapContainer) => {
             
             
         });
+
         return {marker:marker, overlay:overlay}
     }
     useEffect(() => {

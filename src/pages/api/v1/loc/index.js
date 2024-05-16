@@ -6,6 +6,18 @@ export default async function handler(req, res) {
     const user_email = req.headers.email
     const db = await getDB(); //디비 호출
     if (req.method === 'GET') {
+        if(user_email == null) {
+            var locValue = await db.collection('loclist').find().toArray();
+            var keyValueObject = {};
+            locValue.forEach(item => {
+                const { id, ...values } = item;
+                keyValueObject[id] = values;
+                keyValueObject[id].id = id;
+            });
+            
+
+            return res.status(200).json(keyValueObject)
+        }
         var returnValue = await db.collection('user').findOne({email:user_email});
         
         const idList = returnValue.loclist.map(item => item.id);
