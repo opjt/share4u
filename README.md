@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-## Getting Started
+# 공유해유
 
-First, run the development server:
+## 프로젝트 소개
+맛집, 명소등 기억에 남는 장소를 저장하고 장소에 대해 글을 작성하여  
+다른 사람들에게 공유할 수 있는 위치 기반 공유 서비스입니다
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+
+
+
+
+## ⚙ 기술 스택
+
+
+<img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white">
+<img src="https://img.shields.io/badge/MongoDb-47A248?style=for-the-badge&logo=MongoDb&logoColor=white">
+<img src="https://img.shields.io/badge/tailwind_css-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white">
+<img src="https://img.shields.io/badge/axios-5A29E4?style=for-the-badge&logo=axios&logoColor=white">
+<img src="https://img.shields.io/badge/Daisy_ui-5A0EF8?style=for-the-badge&logo=daisyui&logoColor=white">  
+
+## 💡 주요 기능
+
+
+## 📃 API 명세서
+
+
+
+## ▶️ 프로젝트 실행
+
+> .env 파일 추가
+
+[🔗카카오톡로그인 API키 발급](https://developers.kakao.com/docs/latest/ko/kakaologin/common)  
+```yaml
+#.env
+NEXT_PUBLIC_KAKAO_APP_JS_KEY = 카카오맵 JS 키
+MONGODB = mongoDB 접속 주소
+
+KAKAO_CLIENT_ID = 카카오 로그인 클라이언트 키
+KAKAO_CLIENT_SECRET = 카카오 로그인 시크릿 키
+
+BACKEND_URL = http://localhost:3000
+
+NEXTAUTH_URL = http://localhost:3000
+NEXTAUTH_URL_INTERNAL = http://127.0.0.1:3000
+
+NEXTAUTH_SECRET = openssl rand -base64 32 키생성
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.

@@ -5,6 +5,7 @@ import Header from "@/app/components/layout/header";
 import Axios from '@/util/axios';
 import { useRouter, useSearchParams } from "next/navigation";
 import useCustomLogin from '@/app/hooks/useCustomLogin';
+import axios from 'axios';
 
 export default function Page({ params }) {
   console.log(params)
@@ -13,7 +14,7 @@ export default function Page({ params }) {
   const [locInfo, setLocInfo] = useState(null)
   const [posts, setPosts] = useState(null)
   const [userLocList, setUserLocList] = useState([])
-  const { getUserLoc } = useCustomLogin();
+  const { getUserLoc,isLogin } = useCustomLogin();
   const searchParams = useSearchParams() //query스트링 
   const fileInputRef = useRef();
   const inputData = useRef();
@@ -21,13 +22,15 @@ export default function Page({ params }) {
 
   useEffect(() => {
     (async function () {
-      const res = await Axios.get(`/api/v1/loc/${params.id}`)
+      const res = await axios.get(`/api/v1/loc/${params.id}`)
       console.log(res.data)
-      res.data.place.heart = res.data.count 
+      
       setLocInfo(res.data.place)
       if(res.data.place ==null ) {
         var location_info = {place_name: searchParams.get('place_name'),address_name:searchParams.get('address_name')}
         setLocInfo(location_info)
+      } else {
+        res.data.place.heart = res.data.count 
       }
       setPosts(res.data.post)
       setUserLocList(await getUserLoc()) //하트 표시하려고 한거
@@ -36,6 +39,14 @@ export default function Page({ params }) {
     })();
   }, [])
 
+  const handleClickWrite = (locInfo) =>{
+    if(!isLogin) {
+      alert("로그인 후 이용 가능합니다")
+      return
+    }
+    router.push(`/loc/${params.id}/post?place_name=${locInfo?.place_name}&address_name=${locInfo?.address_name}`)
+    
+  }
   const handleClickPost = async (value) => {
     router.push(`/post/${value}`)
   }
@@ -53,7 +64,7 @@ export default function Page({ params }) {
               <p className="text-lg font-semibold">{locInfo?.place_name}</p>
               <p className="text-sm text-gray-600">{locInfo?.address_name}</p>
             </div>
-            <div className='btn btn-sm btn-neutral' onClick={() => (router.push(`/loc/${params.id}/post?place_name=${locInfo?.place_name}&address_name=${locInfo?.address_name}`))}>글쓰기</div>
+            <div className='btn btn-sm btn-neutral' onClick={ () => handleClickWrite(locInfo)}> 글쓰기</div>
           </div>
           {/* <div className="text-right"><div className={`badge badge-md ${userLocList?.includes(params.id) ? 'bg-red-400 text-white' : 'border-red-400 text-red-400'}`} onClick={() => { handleClickHeart(locInfo) }}>저장 {locInfo?.heart}❤️</div></div> */}
           {posts?.length == 0 && (

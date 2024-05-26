@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Axios from "@/util/axios";
+import axios from "axios";
 
 const useKakaoMap = (mapContainer) => {
     const [map, setMap] = useState(null)
@@ -51,7 +52,7 @@ const useKakaoMap = (mapContainer) => {
     }
     const customOverlay = async (data, overlay) => {
         if(!data) return 
-        const res = await Axios.get(`/api/v1/loc/${data.id}`)
+        const res = await axios.get(`/api/v1/loc/${data.id}`)
         data.heartCount = res.data.count
         data.postCount = res.data.post.length
         var contDiv = `

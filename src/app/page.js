@@ -85,6 +85,7 @@ export default function Kmap() {
         var {marker, overlay} = putMarker(position, value)
         markers.push({place: value, marker:marker, overlay:overlay})
         var cont = await customOverlay(value, overlay)
+        map.panTo(marker.getPosition()); 
         overlay.setContent(cont)
         overlay.setMap(map);
         setLocList(markers)

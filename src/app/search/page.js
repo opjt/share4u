@@ -133,7 +133,8 @@ export default function Kmap() {
             {locList.map((value, index) => {
               return (
                 <li key={index} className="p-2 flex gap-3 py-3 border-b-2" >
-                  <div className="skeleton w-24 h-24"></div>
+                  {/* <div className="skeleton w-24 h-24"></div> */} 
+                  {/* 게시글 연동해서 썸네일 표시 추가 */}
                   <div className="flex-1">
                     <h2 className="font-bold text-lg cursor-pointer" onClick={() => { handleClickPlace(value) }}>{value.place.place_name}</h2>
                     <p className="text-sm text-gray-700">{value.place.address_name}</p>

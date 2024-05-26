@@ -7,6 +7,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Axios from '@/util/axios';
 import{ useRouter, useSearchParams } from "next/navigation";
+import axios from 'axios';
 
 export default function Page({ params }) {
   console.log(params)
@@ -20,7 +21,7 @@ export default function Page({ params }) {
 
   useEffect(() => {
     (async function () {
-      const res = await Axios.get(`/api/v1/loc/${params.id}`)
+      const res = await axios.get(`/api/v1/loc/${params.id}`)
       console.log(res.data)
       
       setLocInfo(res.data.place)
